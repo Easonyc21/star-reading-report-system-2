@@ -52,3 +52,9 @@ V9 完整修复：
 2. 修复 search-reports 函数读取 seed-reports.json 的方式。
 3. 新增 health 函数，可以检查 seed-reports.json 是否存在，以及初始数据条数。
 4. search-reports 返回 debug.seedCount，方便确认历史数据是否被读取。
+
+
+V10 修复：
+1. 将 seed-reports.json 复制到 netlify/functions/seed-reports.json。
+2. search-reports 优先读取函数同级目录下的 seed-reports.json，避免 Netlify 运行路径差异导致 seedCount=0。
+3. health 同时检查 process.cwd/data 和 functionDir 两个位置的数据。

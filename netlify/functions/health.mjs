@@ -1,17 +1,23 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+function countJsonArray(p) {
+  try {
+    if (!fs.existsSync(p)) return null;
+    const data = JSON.parse(fs.readFileSync(p, "utf-8"));
+    return Array.isArray(data) ? data.length : "not_array";
+  } catch {
+    return "parse_error";
+  }
+}
 
 export async function handler() {
-  const seedPath = path.join(process.cwd(), "data/seed-reports.json");
-  let seedCount = null;
-  try {
-    if (fs.existsSync(seedPath)) {
-      const data = JSON.parse(fs.readFileSync(seedPath, "utf-8"));
-      seedCount = Array.isArray(data) ? data.length : null;
-    }
-  } catch (err) {
-    seedCount = "parse_error";
-  }
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
+  const processSeedPath = path.join(process.cwd(), "data", "seed-reports.json");
+  const functionSeedPath = path.join(__dirname, "seed-reports.json");
 
   return {
     statusCode: 200,
@@ -19,8 +25,11 @@ export async function handler() {
     body: JSON.stringify({
       ok: true,
       cwd: process.cwd(),
-      seedExists: fs.existsSync(seedPath),
-      seedCount,
+      functionDir: __dirname,
+      processSeedExists: fs.existsSync(processSeedPath),
+      processSeedCount: countJsonArray(processSeedPath),
+      functionSeedExists: fs.existsSync(functionSeedPath),
+      functionSeedCount: countJsonArray(functionSeedPath),
       time: new Date().toISOString()
     })
   };

@@ -17,9 +17,12 @@ function loadSeedReports() {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
 
+    // Most reliable path: seed-reports.json is copied directly beside this function.
+    const localSeedPath = path.join(__dirname, "seed-reports.json");
+
     const possiblePaths = [
-      path.join(__dirname, "../../data/seed-reports.json"),
-      path.join(process.cwd(), "data/seed-reports.json"),
+      localSeedPath,
+      path.join(process.cwd(), "data", "seed-reports.json"),
       path.join(process.cwd(), "seed-reports.json")
     ];
 
