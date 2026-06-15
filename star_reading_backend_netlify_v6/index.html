@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Star Reading 阅读报告查询系统</title>
+  <style>
+    :root {
+      --primary: #184CFF;
+      --primary-dark: #0F36B8;
+      --text: #172033;
+      --muted: #6B7280;
+      --line: #E5E7EB;
+      --gold-bg: #FFF7D6;
+      --gold-line: #F6D365;
+      --gold-text: #7A4B00;
+      --orange-bg: #FFF7ED;
+      --orange-line: #FED7AA;
+      --orange-text: #9A3412;
+      --green-bg: #ECFDF5;
+      --green-line: #BBF7D0;
+      --green-text: #047857;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(24,76,255,0.13), transparent 35%),
+        radial-gradient(circle at 92% 12%, rgba(103,232,249,0.20), transparent 30%),
+        linear-gradient(180deg, #F7F9FF 0%, #FFFFFF 100%);
+      color: var(--text);
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 34px 18px 44px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .brand-logos {
+      width: min(720px, 100%);
+      margin: 0 auto 18px;
+      padding: 14px 18px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(255,255,255,0.95);
+      box-shadow: 0 18px 45px rgba(15,23,42,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+    }
+
+    .brand-logo {
+      display: block;
+      object-fit: contain;
+    }
+
+    .xcellent-logo {
+      width: 146px;
+      max-height: 96px;
+    }
+
+    .star-logo {
+      width: 330px;
+      max-height: 88px;
+    }
+
+    .brand-divider {
+      width: 1px;
+      height: 56px;
+      background: var(--line);
+      flex: 0 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      max-width: 760px;
+      margin: 10px auto 0;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 15px;
+    }
+
+    .query-card, .result {
+      background: rgba(255,255,255,0.94);
+      border: 1px solid rgba(255,255,255,0.96);
+      border-radius: 28px;
+      box-shadow: 0 18px 55px rgba(15,23,42,0.08);
+    }
+
+    .query-card {
+      padding: 22px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(16px);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 150px;
+      gap: 14px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      height: 52px;
+      padding: 0 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      font-size: 16px;
+      outline: none;
+      background: #fff;
+      transition: all .18s ease;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(24,76,255,0.10);
+    }
+
+    button {
+      width: 100%;
+      height: 52px;
+      border: none;
+      border-radius: 16px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all .18s ease;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .tip {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .not-found {
+      display: none;
+      margin-top: 16px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: var(--orange-bg);
+      border: 1px solid var(--orange-line);
+      color: var(--orange-text);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .result {
+      display: none;
+      padding: 24px;
+    }
+
+    .student-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 22px;
+      align-items: flex-start;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .student-main {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .student-name {
+      margin: 0 0 8px;
+      font-size: 27px;
+      line-height: 1.25;
+      font-weight: 900;
+    }
+
+    .student-meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .duration-top {
+      flex: 0 0 auto;
+      min-width: 190px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+      text-align: right;
+    }
+
+    .duration-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .duration-value {
+      font-size: 20px;
+      line-height: 1.25;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .report-picker {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 22px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .report-picker h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .report-picker p {
+      margin: 0;
+      color: #374151;
+      line-height: 1.75;
+      font-size: 14px;
+    }
+
+    .report-list {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .report-item {
+      width: 100%;
+      min-height: 74px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      text-align: left;
+      cursor: pointer;
+      transition: all .18s ease;
+    }
+
+    .report-item:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(24,76,255,0.08);
+      transform: translateY(-1px);
+    }
+
+    .report-item.active {
+      border-color: var(--primary);
+      background: #F3F6FF;
+    }
+
+    .report-date {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .report-meta {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .report-action {
+      color: var(--primary);
+      font-weight: 900;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .latest-tag {
+      display: inline-flex;
+      margin-left: 8px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: var(--green-bg);
+      border: 1px solid var(--green-line);
+      color: var(--green-text);
+      font-size: 12px;
+      font-weight: 800;
+      vertical-align: 2px;
+    }
+
+    .detail-wrap {
+      display: none;
+    }
+
+    .summary-hero {
+      margin-top: 20px;
+      padding: 22px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--gold-bg), #FFFFFF);
+      border: 1px solid var(--gold-line);
+      box-shadow: 0 16px 35px rgba(122, 75, 0, 0.08);
+    }
+
+    .summary-label {
+      color: var(--gold-text);
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .summary-title {
+      color: #3A2A00;
+      font-size: 30px;
+      line-height: 1.2;
+      font-weight: 950;
+      letter-spacing: -0.4px;
+    }
+
+    .summary-sub {
+      margin-top: 10px;
+      color: #5F4B12;
+      line-height: 1.75;
+      font-size: 15px;
+    }
+
+    .section {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 22px;
+      background: #F9FAFB;
+      border: 1px solid var(--line);
+    }
+
+    .section.white { background: #fff; }
+
+    .section h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .section p {
+      margin: 0;
+      color: #374151;
+      line-height: 1.85;
+      font-size: 15px;
+      white-space: pre-line;
+    }
+
+    .section-intro {
+      margin-bottom: 12px !important;
+    }
+
+    .metric-grid {
+      display: grid;
+      gap: 13px;
+      margin-top: 14px;
+    }
+
+    .metric-grid.assessment { grid-template-columns: repeat(3, 1fr); }
+    .metric-grid.materials { grid-template-columns: repeat(2, 1fr); }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px;
+      background: #fff;
+      min-height: 120px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .metric-value {
+      font-size: 25px;
+      font-weight: 950;
+      letter-spacing: -0.3px;
+      word-break: break-word;
+      line-height: 1.25;
+    }
+
+    .metric-value.text-value {
+      font-size: 20px;
+      line-height: 1.45;
+    }
+
+    .metric-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .domain-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .domain-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .domain-title {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.45;
+      min-height: 38px;
+      font-weight: 700;
+    }
+
+    .domain-score {
+      margin-top: 8px;
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .bar {
+      margin-top: 8px;
+      height: 7px;
+      background: #E5E7EB;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-inner {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 999px;
+    }
+
+    .download-card {
+      margin-top: 20px;
+      padding: 22px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #EEF2FF, #F8FAFC);
+      border: 1px solid #DDE5FF;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .download-card h3 {
+      margin: 0 0 7px;
+      font-size: 19px;
+    }
+
+    .download-card p {
+      margin: 0;
+      color: #4B5563;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .pdf-btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 190px;
+      height: 48px;
+      padding: 0 18px;
+      border-radius: 15px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 920px) {
+      .form-grid { grid-template-columns: 1fr; gap: 12px; }
+      .student-head { flex-direction: column; gap: 14px; }
+      .duration-top { width: 100%; text-align: left; }
+      .download-card { flex-direction: column; }
+      .metric-grid.assessment, .metric-grid.materials { grid-template-columns: 1fr; }
+      .domain-grid { grid-template-columns: repeat(2, 1fr); }
+      .pdf-btn { width: 100%; }
+    }
+
+    @media (max-width: 560px) {
+      body { background: linear-gradient(180deg, #F7F9FF 0%, #FFFFFF 100%); }
+      .page { padding: 22px 12px 34px; }
+      .brand-logos {
+        margin-bottom: 14px;
+        padding: 12px 12px;
+        border-radius: 20px;
+        gap: 10px;
+      }
+      .xcellent-logo { width: 96px; max-height: 66px; }
+      .star-logo { width: 190px; max-height: 58px; }
+      .brand-divider { height: 42px; }
+      h1 { font-size: 23px; }
+      .subtitle { font-size: 13px; line-height: 1.65; }
+      .query-card, .result { border-radius: 22px; padding: 16px; }
+      input, button { height: 50px; font-size: 15px; border-radius: 14px; }
+      .student-name { font-size: 22px; }
+      .student-meta { font-size: 13px; }
+      .duration-top { border-radius: 16px; padding: 13px 14px; }
+      .duration-value { font-size: 18px; }
+      .report-picker { padding: 17px; border-radius: 20px; }
+      .report-item { grid-template-columns: 1fr; gap: 8px; }
+      .report-action { font-size: 13px; }
+      .summary-hero { padding: 19px 17px; border-radius: 20px; }
+      .summary-title { font-size: 27px; }
+      .summary-sub { font-size: 14px; }
+      .section { padding: 17px; border-radius: 20px; }
+      .section h3 { font-size: 17px; }
+      .section p { font-size: 14px; line-height: 1.8; }
+      .metric { min-height: auto; padding: 15px; }
+      .metric-value { font-size: 24px; }
+      .metric-value.text-value { font-size: 18px; }
+      .domain-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="brand-logos">
+        <img class="brand-logo xcellent-logo" src="assets/xcellent-logo.png" alt="Xcellent logo" />
+        <div class="brand-divider"></div>
+        <img class="brand-logo star-logo" src="assets/star-reading-logo.webp" alt="Star Reading logo" />
+      </div>
+      <h1>Star Reading 阅读报告查询系统</h1>
+      <p class="subtitle">
+        请输入学员编号和孩子中文名，查询孩子的 Star Reading 历史测评记录、中文解读与原始 PDF 报告。
+      </p>
+    </section>
+
+    <section class="query-card">
+      <div class="form-grid">
+        <div>
+          <label for="studentId">学员编号</label>
+          <input id="studentId" type="text" placeholder="请输入学员编号" autocomplete="off" />
+        </div>
+        <div>
+          <label for="chineseName">孩子中文名</label>
+          <input id="chineseName" type="text" placeholder="请输入孩子中文名" autocomplete="off" />
+        </div>
+        <div>
+          <button onclick="searchReports()">点击查询</button>
+        </div>
+      </div>
+      <div class="tip">
+        为保护学员隐私，本系统需要同时输入学员编号和孩子中文名。查询成功后，可选择具体测评时间查看报告解读，并下载对应原始 PDF。
+      </div>
+      <div id="notFound" class="not-found"></div>
+    </section>
+
+    <section id="result" class="result">
+      <div class="student-head">
+        <div class="student-main">
+          <h2 id="name" class="student-name"></h2>
+          <div id="meta" class="student-meta"></div>
+        </div>
+        <div id="durationTop" class="duration-top">
+          <div class="duration-label">当前查看报告测试用时</div>
+          <div id="testDurationTop" class="duration-value"></div>
+        </div>
+      </div>
+
+      <div class="report-picker">
+        <h3>测评记录</h3>
+        <p id="reportCountText"></p>
+        <div id="reportList" class="report-list"></div>
+      </div>
+
+      <div id="detailWrap" class="detail-wrap">
+        <div class="summary-hero">
+          <div class="summary-label">本次测评结论</div>
+          <div id="summaryBadge" class="summary-title"></div>
+          <div id="summarySub" class="summary-sub"></div>
+        </div>
+
+        <div class="section white">
+          <h3>一、孩子本次测评表现</h3>
+          <div class="metric-grid assessment">
+            <div class="metric">
+              <div class="metric-label">当前 Lexile（蓝思值）</div>
+              <div id="lexileScore" class="metric-value"></div>
+              <div class="metric-note">可以理解为孩子当前英文阅读能力的蓝思水平。</div>
+            </div>
+
+            <div class="metric">
+              <div class="metric-label">超过美国同年级学生比例</div>
+              <div id="prFriendly" class="metric-value text-value"></div>
+              <div class="metric-note">由 PR 百分位转化而来，表示孩子在美国同年级常模中的相对位置。</div>
+            </div>
+
+            <div class="metric">
+              <div class="metric-label">GE 年级等值</div>
+              <div id="geRaw" class="metric-value"></div>
+              <div id="geFriendly" class="metric-note"></div>
+              <div class="metric-note">这是阅读表现参考，不等于孩子真实就读年级。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section white">
+          <h3>二、阅读材料与教学材料参考</h3>
+          <p class="section-intro">帮助理解孩子现在更适合接触什么难度的英文读物和学习材料。</p>
+          <div class="metric-grid materials">
+            <div class="metric">
+              <div class="metric-label">Lexile（蓝思值）推荐区间</div>
+              <div id="lexileRange" class="metric-value"></div>
+              <div class="metric-note">选书难度参考，建议优先选择这个区间附近的读物。</div>
+            </div>
+
+            <div class="metric">
+              <div class="metric-label">IRL 阅读水平</div>
+              <div id="irlRaw" class="metric-value"></div>
+              <div id="irlFriendly" class="metric-note"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>三、这份报告说明了什么？</h3>
+          <p id="interpretation"></p>
+        </div>
+
+        <div class="section">
+          <h3>四、分项能力表现</h3>
+          <p>以下分项分数为 Star Reading 对不同阅读能力维度的估计掌握度，满分为 100。它可以帮助我们判断孩子的优势和后续需要继续巩固的方向。</p>
+          <div class="domain-grid">
+            <div class="domain-card">
+              <div class="domain-title">文学文本理解<br>人物、情节与核心信息</div>
+              <div id="literatureComprehension" class="domain-score"></div>
+              <div class="bar"><div id="bar1" class="bar-inner"></div></div>
+            </div>
+            <div class="domain-card">
+              <div class="domain-title">文学文本结构<br>体裁、结构与作者写法</div>
+              <div id="literatureStructure" class="domain-score"></div>
+              <div class="bar"><div id="bar2" class="bar-inner"></div></div>
+            </div>
+            <div class="domain-card">
+              <div class="domain-title">信息类文本理解<br>事实信息与信息整合</div>
+              <div id="informationalComprehension" class="domain-score"></div>
+              <div class="bar"><div id="bar3" class="bar-inner"></div></div>
+            </div>
+            <div class="domain-card">
+              <div class="domain-title">阅读基础<br>拼读、识词与基础阅读</div>
+              <div id="foundations" class="domain-score"></div>
+              <div class="bar"><div id="bar4" class="bar-inner"></div></div>
+            </div>
+            <div class="domain-card">
+              <div class="domain-title">词汇发展<br>词义理解与词汇积累</div>
+              <div id="vocabulary" class="domain-score"></div>
+              <div class="bar"><div id="bar5" class="bar-inner"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>五、孩子现在适合读什么？</h3>
+          <p id="readingRange"></p>
+        </div>
+
+        <div class="section">
+          <h3>六、下一步阅读建议</h3>
+          <p id="advice"></p>
+        </div>
+
+        <div class="download-card">
+          <div>
+            <h3>原始 Star Reading 报告</h3>
+            <p>点击右侧按钮可打开当前所选测评记录的原始 PDF 报告。打开后可在浏览器中下载或保存，建议家长留存。</p>
+          </div>
+          <a id="pdfLink" class="pdf-btn" href="#" target="_blank" rel="noopener">查看 / 下载 PDF</a>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      本页面仅用于学员个人学习报告查询。请妥善保管学员信息和报告文件，不要公开传播。
+    </p>
+  </main>
+
+  <script>
+    let currentReports = [];
+    let currentSelectedIndex = 0;
+
+    function normalize(text) {
+      return String(text || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "");
+    }
+
+    function num(value) {
+      const m = String(value || "").match(/-?\d+(\.\d+)?/);
+      return m ? Number(m[0]) : null;
+    }
+
+    function dateValue(value) {
+      const t = Date.parse(String(value || "").replace(/-/g, "/"));
+      return Number.isFinite(t) ? t : 0;
+    }
+
+    function setText(id, value) {
+      document.getElementById(id).innerText = value || "-";
+    }
+
+    function setBar(id, value) {
+      const n = num(value);
+      document.getElementById(id).style.width = n == null ? "0%" : Math.max(0, Math.min(100, n)) + "%";
+    }
+
+    function buildSummary(student) {
+      const pr = num(student.pr);
+      if (pr >= 98) return "阅读表现非常突出";
+      if (pr >= 90) return "阅读表现优秀";
+      if (pr >= 75) return "阅读表现良好";
+      return "阅读表现稳步发展";
+    }
+
+    function buildSummarySub(student) {
+      const pr = num(student.pr);
+      const lexile = student.lexileScore || "-";
+      const range = student.lexileRange || "-";
+      if (pr != null) {
+        return `孩子当前 Lexile（蓝思值）为 ${lexile}，约超过美国同年级 ${pr}% 的学生。建议结合 Lexile（蓝思值）推荐区间 ${range} 选择后续阅读材料。`;
+      }
+      return `孩子当前 Lexile（蓝思值）为 ${lexile}。建议结合 Lexile（蓝思值）推荐区间 ${range} 选择后续阅读材料。`;
+    }
+
+    function buildPRFriendly(student) {
+      const pr = num(student.pr);
+      if (pr == null) return "-";
+      return `约超过美国同年级 ${pr}% 的学生`;
+    }
+
+    function buildGEFriendly(student) {
+      const ge = num(student.ge);
+      if (ge == null) return student.ge || "-";
+      const grade = Math.floor(ge);
+      const month = Math.round((ge - grade) * 10);
+      if (month <= 0) return `约等同美国小学 ${grade} 年级开学初的阅读表现`;
+      return `约等同美国小学 ${grade} 年级第 ${month} 个月的阅读表现`;
+    }
+
+    function buildIRLFriendly(student) {
+      const irl = num(student.irl);
+      if (irl == null) return student.irl || "-";
+      const grade = Math.floor(irl);
+      const month = Math.round((irl - grade) * 10);
+      if (month <= 0) return `适合参考美国小学 ${grade} 年级开学初材料`;
+      return `适合参考美国小学 ${grade} 年级第 ${month} 个月材料`;
+    }
+
+    function buildInterpretation(student) {
+      const prFriendly = buildPRFriendly(student);
+      const geFriendly = buildGEFriendly(student);
+      const irlFriendly = buildIRLFriendly(student);
+      const lexile = student.lexileScore || "-";
+      const benchmark = student.benchmarkCategory || "-";
+
+      return `本次 Star Reading 测评显示，孩子当前 Lexile（蓝思值）阅读水平为 ${lexile}，Benchmark 结果为 ${benchmark}。\n\n${prFriendly}，可以帮助我们理解孩子在美国同年级常模中的相对位置。GE 为 ${student.ge || "-"}，${geFriendly}，但 GE 只是阅读表现的参考，不建议简单理解为孩子真实就读年级，也不等同于孩子可以完全独立阅读该年级所有材料。\n\nIRL 为 ${student.irl || "-"}，孩子${irlFriendly}，这个指标更适合用于判断教学材料和阅读材料的难度。整体来看，这份报告可以帮助我们判断孩子当前英文阅读能力的位置、适合的阅读难度，以及后续需要重点巩固的阅读维度。`;
+    }
+
+    function buildReadingRange(student) {
+      const range = student.lexileRange || "-";
+      const irlFriendly = buildIRLFriendly(student);
+      return `建议优先参考 Lexile（蓝思值）推荐区间 ${range} 选择英文读物，同时参考 IRL：孩子目前${irlFriendly}。\n\n选书时不建议只追求更高难度，而要优先选择孩子能较顺畅读懂、同时有少量挑战的材料。如果孩子读得非常轻松，可以逐步上探难度；如果阅读中频繁卡顿、需要大量翻译或解释，则说明材料可能偏难，应适当降低难度，先保证阅读连续性和理解质量。`;
+    }
+
+    function buildAdvice(student) {
+      const scores = [
+        ["文学文本理解", num(student.literatureComprehension)],
+        ["文学文本结构", num(student.literatureStructure)],
+        ["信息类文本理解", num(student.informationalComprehension)],
+        ["阅读基础", num(student.foundations)],
+        ["词汇发展", num(student.vocabulary)]
+      ].filter(item => item[1] != null);
+
+      let weakest = "";
+      if (scores.length) {
+        scores.sort((a, b) => a[1] - b[1]);
+        weakest = scores[0][0];
+      }
+
+      let focus = weakest ? `从分项结果看，可以特别关注“${weakest}”这一维度的持续训练。` : "后续可以继续关注阅读理解、词汇积累和读后表达。";
+
+      return `${focus}\n\n家庭阅读中建议保持稳定的英文阅读时间，优先保证每天持续阅读。读完后，不需要大量做题，可以让孩子用 3-5 句话复述主要内容，并说出一个自己最感兴趣的细节。阅读非虚构文本时，可以重点练习找主旨、找细节、做简单推理；阅读故事类文本时，可以关注人物、情节、原因和结果。`;
+    }
+
+    function renderReportList() {
+      const list = document.getElementById("reportList");
+      list.innerHTML = "";
+
+      currentReports.forEach((report, index) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "report-item" + (index === currentSelectedIndex ? " active" : "");
+        item.onclick = () => selectReport(index);
+
+        const left = document.createElement("div");
+        const date = document.createElement("div");
+        date.className = "report-date";
+        date.innerHTML = `${report.testDate || "未注明日期"}${index === 0 ? '<span class="latest-tag">最新</span>' : ""}`;
+
+        const meta = document.createElement("div");
+        meta.className = "report-meta";
+        meta.innerText = `Lexile（蓝思值）${report.lexileScore || "-"}｜${buildPRFriendly(report)}｜${buildSummary(report)}`;
+
+        left.appendChild(date);
+        left.appendChild(meta);
+
+        const action = document.createElement("div");
+        action.className = "report-action";
+        action.innerText = index === currentSelectedIndex ? "当前查看" : "查看报告";
+
+        item.appendChild(left);
+        item.appendChild(action);
+        list.appendChild(item);
+      });
+    }
+
+    function selectReport(index) {
+      currentSelectedIndex = index;
+      const student = currentReports[index];
+      document.getElementById("detailWrap").style.display = "block";
+
+      setText("testDurationTop", student.testDuration);
+      setText("summaryBadge", buildSummary(student));
+      setText("summarySub", buildSummarySub(student));
+      document.getElementById("pdfLink").href = student.reportUrl;
+
+      setText("lexileScore", student.lexileScore);
+      setText("prFriendly", buildPRFriendly(student));
+      setText("geRaw", student.ge);
+      setText("geFriendly", buildGEFriendly(student));
+      setText("lexileRange", student.lexileRange);
+      setText("irlRaw", student.irl);
+      setText("irlFriendly", buildIRLFriendly(student));
+
+      setText("interpretation", buildInterpretation(student));
+      setText("readingRange", buildReadingRange(student));
+      setText("advice", buildAdvice(student));
+
+      setText("literatureComprehension", student.literatureComprehension);
+      setText("literatureStructure", student.literatureStructure);
+      setText("informationalComprehension", student.informationalComprehension);
+      setText("foundations", student.foundations);
+      setText("vocabulary", student.vocabulary);
+
+      setBar("bar1", student.literatureComprehension);
+      setBar("bar2", student.literatureStructure);
+      setBar("bar3", student.informationalComprehension);
+      setBar("bar4", student.foundations);
+      setBar("bar5", student.vocabulary);
+
+      renderReportList();
+    }
+
+    async function searchReports() {
+      const rawId = document.getElementById("studentId").value.trim();
+      const rawName = document.getElementById("chineseName").value.trim();
+      const id = normalize(rawId);
+      const name = normalize(rawName);
+      const resultBox = document.getElementById("result");
+      const notFound = document.getElementById("notFound");
+      const detailWrap = document.getElementById("detailWrap");
+
+      if (!id || !name) {
+        resultBox.style.display = "none";
+        detailWrap.style.display = "none";
+        notFound.style.display = "block";
+        notFound.innerText = "请输入完整的学员编号和孩子中文名后再查询。";
+        return;
+      }
+
+      try {
+        notFound.style.display = "block";
+        notFound.style.background = "#EEF2FF";
+        notFound.style.borderColor = "#DDE5FF";
+        notFound.style.color = "#0F36B8";
+        notFound.innerText = "正在查询报告，请稍候...";
+
+        const url = `/.netlify/functions/search-reports?studentId=${encodeURIComponent(rawId)}&chineseName=${encodeURIComponent(rawName)}&t=${Date.now()}`;
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "查询失败");
+        }
+
+        currentReports = (data.reports || [])
+          .sort((a, b) => dateValue(b.testDate) - dateValue(a.testDate));
+
+        if (!currentReports.length) {
+          resultBox.style.display = "none";
+          detailWrap.style.display = "none";
+          notFound.style.display = "block";
+          notFound.style.background = "";
+          notFound.style.borderColor = "";
+          notFound.style.color = "";
+          notFound.innerText = "没有查询到对应报告。请检查学员编号和孩子中文名是否输入正确；如仍无法查询，请联系班主任老师。";
+          return;
+        }
+
+        const first = currentReports[0];
+
+        notFound.style.display = "none";
+        resultBox.style.display = "block";
+
+        setText("name", `${first.chineseName}${first.studentNameEnglish ? " / " + first.studentNameEnglish : ""}`);
+        document.getElementById("meta").innerHTML =
+          `学员编号：${first.studentId}<br>班级：${first.className || "-"}｜年级：${first.grade || "-"}｜共 ${currentReports.length} 份测评报告`;
+
+        document.getElementById("reportCountText").innerText =
+          currentReports.length === 1
+            ? "已查询到 1 份 Star Reading 测评报告。"
+            : `已查询到 ${currentReports.length} 份 Star Reading 测评报告，默认展示最新一次测评；也可以点击下方其他测试时间查看历史报告。`;
+
+        currentSelectedIndex = 0;
+        renderReportList();
+        selectReport(0);
+
+        resultBox.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (err) {
+        resultBox.style.display = "none";
+        detailWrap.style.display = "none";
+        notFound.style.display = "block";
+        notFound.style.background = "";
+        notFound.style.borderColor = "";
+        notFound.style.color = "";
+        notFound.innerText = "查询服务暂时不可用，请稍后再试。";
+      }
+    }
+
+    document.getElementById("studentId").addEventListener("keydown", e => {
+      if (e.key === "Enter") searchReports();
+    });
+
+    document.getElementById("chineseName").addEventListener("keydown", e => {
+      if (e.key === "Enter") searchReports();
+    });
+  </script>
+</body>
+</html>

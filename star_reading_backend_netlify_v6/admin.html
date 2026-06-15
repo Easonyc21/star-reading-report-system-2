@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Star Reading 报告后台管理</title>
+  <style>
+    :root {
+      --primary: #184CFF;
+      --primary-dark: #0F36B8;
+      --text: #172033;
+      --muted: #6B7280;
+      --line: #E5E7EB;
+      --bg: #F7F9FF;
+      --card: #FFFFFF;
+      --green: #047857;
+      --green-bg: #ECFDF5;
+      --red: #B91C1C;
+      --red-bg: #FEF2F2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+      background: linear-gradient(180deg, var(--bg), #fff);
+      color: var(--text);
+    }
+    .page {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 18px 50px;
+    }
+    .head {
+      background: rgba(255,255,255,0.94);
+      border: 1px solid rgba(255,255,255,0.96);
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: 0 18px 55px rgba(15,23,42,0.08);
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.25;
+    }
+    .sub {
+      margin-top: 10px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 22px;
+      margin-top: 18px;
+      box-shadow: 0 12px 36px rgba(15,23,42,0.06);
+    }
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 13px;
+      color: #374151;
+      font-weight: 800;
+    }
+    input, textarea {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      outline: none;
+      font-size: 15px;
+      background: #fff;
+    }
+    textarea {
+      min-height: 120px;
+      padding: 12px 14px;
+      resize: vertical;
+      line-height: 1.7;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(24,76,255,0.10);
+    }
+    .full { grid-column: 1 / -1; }
+    button {
+      height: 50px;
+      padding: 0 18px;
+      border: none;
+      border-radius: 15px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    button:hover { background: var(--primary-dark); }
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .status {
+      display: none;
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .status.ok {
+      display: block;
+      background: var(--green-bg);
+      color: var(--green);
+    }
+    .status.err {
+      display: block;
+      background: var(--red-bg);
+      color: var(--red);
+    }
+    .actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .small-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+    .small-table th, .small-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .small-table th {
+      color: var(--muted);
+      font-weight: 900;
+    }
+    @media (max-width: 720px) {
+      .page { padding: 22px 12px 40px; }
+      .head, .card { border-radius: 22px; padding: 18px; }
+      h1 { font-size: 24px; }
+      .grid, .grid3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="head">
+      <h1>Star Reading 报告后台管理</h1>
+      <div class="sub">
+        在这里新增报告后，家长端查询页会自动读取最新数据。旧报告不会被覆盖，同一个孩子可以保留多份不同测试时间的报告。
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>管理员验证</h2>
+      <div class="grid">
+        <div>
+          <label for="adminPassword">后台密码</label>
+          <input id="adminPassword" type="password" placeholder="请输入后台密码" />
+        </div>
+      </div>
+      <p class="muted">密码不会保存在页面里。请在 Netlify 环境变量中设置 <b>ADMIN_PASSWORD</b>。</p>
+    </section>
+
+    <section class="card">
+      <h2>新增一份报告</h2>
+      <div class="grid">
+        <div>
+          <label for="studentId">学员编号 *</label>
+          <input id="studentId" placeholder="例如：241010088333" />
+        </div>
+        <div>
+          <label for="chineseName">孩子中文名 *</label>
+          <input id="chineseName" placeholder="例如：宫梓淇" />
+        </div>
+        <div>
+          <label for="studentNameEnglish">英文名 / 拼音名</label>
+          <input id="studentNameEnglish" placeholder="例如：GONG, ZIQI" />
+        </div>
+        <div>
+          <label for="className">班级</label>
+          <input id="className" placeholder="例如：Grade1 1X" />
+        </div>
+        <div>
+          <label for="grade">年级</label>
+          <input id="grade" placeholder="例如：Pre-K" />
+        </div>
+        <div>
+          <label for="testDate">测试日期 *</label>
+          <input id="testDate" type="date" />
+        </div>
+      </div>
+
+      <div class="grid3" style="margin-top:14px;">
+        <div>
+          <label for="lexileScore">当前 Lexile（蓝思值）</label>
+          <input id="lexileScore" placeholder="例如：320L" />
+        </div>
+        <div>
+          <label for="lexileRange">Lexile 推荐区间</label>
+          <input id="lexileRange" placeholder="例如：220L - 370L" />
+        </div>
+        <div>
+          <label for="pr">PR 百分位</label>
+          <input id="pr" placeholder="例如：96" />
+        </div>
+        <div>
+          <label for="ge">GE</label>
+          <input id="ge" placeholder="例如：2.9" />
+        </div>
+        <div>
+          <label for="irl">IRL</label>
+          <input id="irl" placeholder="例如：2.5" />
+        </div>
+        <div>
+          <label for="testDuration">测试用时</label>
+          <input id="testDuration" placeholder="例如：28 mins and 5 secs" />
+        </div>
+        <div>
+          <label for="benchmarkCategory">Benchmark Category</label>
+          <input id="benchmarkCategory" placeholder="例如：At/Above Benchmark" />
+        </div>
+      </div>
+
+      <div class="grid3" style="margin-top:14px;">
+        <div>
+          <label for="literatureComprehension">文学文本理解</label>
+          <input id="literatureComprehension" placeholder="0-100" />
+        </div>
+        <div>
+          <label for="literatureStructure">文学文本结构</label>
+          <input id="literatureStructure" placeholder="0-100" />
+        </div>
+        <div>
+          <label for="informationalComprehension">信息类文本理解</label>
+          <input id="informationalComprehension" placeholder="0-100" />
+        </div>
+        <div>
+          <label for="foundations">阅读基础</label>
+          <input id="foundations" placeholder="0-100" />
+        </div>
+        <div>
+          <label for="vocabulary">词汇发展</label>
+          <input id="vocabulary" placeholder="0-100" />
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:14px;">
+        <div class="full">
+          <label for="pdfFile">原始 PDF 报告 *</label>
+          <input id="pdfFile" type="file" accept="application/pdf" />
+          <p class="muted">建议同一份报告只上传一次。系统会自动生成不易猜到的 PDF 文件名。</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button onclick="submitReport()">保存报告</button>
+        <span class="muted">保存成功后，家长端刷新查询即可看到。</span>
+      </div>
+      <div id="saveStatus" class="status"></div>
+    </section>
+
+    <section class="card">
+      <h2>快速检查</h2>
+      <div class="grid">
+        <div>
+          <label for="checkStudentId">学员编号</label>
+          <input id="checkStudentId" placeholder="输入学员编号" />
+        </div>
+        <div>
+          <label for="checkChineseName">中文名</label>
+          <input id="checkChineseName" placeholder="输入中文名" />
+        </div>
+      </div>
+      <div class="actions">
+        <button onclick="checkReports()">查询该学员报告数</button>
+      </div>
+      <div id="checkStatus" class="status"></div>
+      <div id="checkTable"></div>
+    </section>
+  </main>
+
+  <script>
+    function value(id) {
+      return document.getElementById(id).value.trim();
+    }
+
+    function setStatus(id, ok, text) {
+      const el = document.getElementById(id);
+      el.className = ok ? "status ok" : "status err";
+      el.innerText = text;
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || "");
+          resolve(result.split(",")[1] || "");
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function submitReport() {
+      const password = value("adminPassword");
+      const file = document.getElementById("pdfFile").files[0];
+
+      if (!password) {
+        setStatus("saveStatus", false, "请先输入后台密码。");
+        return;
+      }
+      if (!value("studentId") || !value("chineseName") || !value("testDate") || !file) {
+        setStatus("saveStatus", false, "请至少填写学员编号、中文名、测试日期，并上传 PDF。");
+        return;
+      }
+
+      try {
+        setStatus("saveStatus", true, "正在上传并保存，请稍候...");
+
+        const pdfBase64 = await fileToBase64(file);
+
+        const payload = {
+          studentId: value("studentId"),
+          chineseName: value("chineseName"),
+          studentNameEnglish: value("studentNameEnglish"),
+          className: value("className"),
+          grade: value("grade"),
+          testDate: value("testDate"),
+          lexileScore: value("lexileScore"),
+          lexileRange: value("lexileRange"),
+          pr: value("pr"),
+          ge: value("ge"),
+          irl: value("irl"),
+          testDuration: value("testDuration"),
+          benchmarkCategory: value("benchmarkCategory"),
+          literatureComprehension: value("literatureComprehension"),
+          literatureStructure: value("literatureStructure"),
+          informationalComprehension: value("informationalComprehension"),
+          foundations: value("foundations"),
+          vocabulary: value("vocabulary"),
+          originalFileName: file.name,
+          pdfBase64
+        };
+
+        const res = await fetch("/.netlify/functions/admin-add-report", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Password": password
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "保存失败");
+
+        setStatus("saveStatus", true, `保存成功：${data.record.testDate}｜${data.record.chineseName}｜${data.record.studentId}`);
+        document.getElementById("pdfFile").value = "";
+      } catch (err) {
+        setStatus("saveStatus", false, err.message || "保存失败，请重试。");
+      }
+    }
+
+    async function checkReports() {
+      const id = value("checkStudentId");
+      const name = value("checkChineseName");
+      if (!id || !name) {
+        setStatus("checkStatus", false, "请输入学员编号和中文名。");
+        return;
+      }
+
+      try {
+        setStatus("checkStatus", true, "正在查询...");
+        const res = await fetch(`/.netlify/functions/search-reports?studentId=${encodeURIComponent(id)}&chineseName=${encodeURIComponent(name)}&t=${Date.now()}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "查询失败");
+
+        const reports = data.reports || [];
+        setStatus("checkStatus", true, `查询到 ${reports.length} 份报告。`);
+
+        const table = document.getElementById("checkTable");
+        if (!reports.length) {
+          table.innerHTML = "";
+          return;
+        }
+
+        table.innerHTML = `
+          <table class="small-table">
+            <thead>
+              <tr>
+                <th>测试日期</th>
+                <th>Lexile</th>
+                <th>PR</th>
+                <th>GE</th>
+                <th>IRL</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${reports.map(r => `
+                <tr>
+                  <td>${r.testDate || "-"}</td>
+                  <td>${r.lexileScore || "-"}</td>
+                  <td>${r.pr || "-"}</td>
+                  <td>${r.ge || "-"}</td>
+                  <td>${r.irl || "-"}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        setStatus("checkStatus", false, err.message || "查询失败。");
+      }
+    }
+  </script>
+</body>
+</html>
