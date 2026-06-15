@@ -265,6 +265,7 @@
 
     .report-item {
       width: 100%;
+      height: auto;
       min-height: 74px;
       border: 1px solid var(--line);
       border-radius: 18px;
@@ -277,7 +278,8 @@
       text-align: left;
       cursor: pointer;
       transition: all .18s ease;
-      overflow: hidden;
+      overflow: visible;
+      white-space: normal;
     }
 
     .report-item:hover {
@@ -291,11 +293,22 @@
       background: #F3F6FF;
     }
 
+    button.report-item {
+      height: auto;
+    }
+
     .report-date {
       font-size: 18px;
       font-weight: 900;
       color: var(--text);
       line-height: 1.3;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .report-item > div:first-child {
+      min-width: 0;
+      overflow: visible;
     }
 
     .report-meta {
@@ -306,6 +319,15 @@
       white-space: normal;
       overflow-wrap: anywhere;
       word-break: break-word;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+    }
+
+    .report-meta span {
+      display: inline-block;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     .report-action {
@@ -557,10 +579,13 @@
       .duration-value { font-size: 18px; }
       .report-picker { padding: 17px; border-radius: 20px; }
       .report-item {
+        height: auto;
+        min-height: 0;
         grid-template-columns: 1fr;
-        gap: 8px;
-        padding: 14px;
+        gap: 10px;
+        padding: 16px 14px;
         overflow: visible;
+        align-items: start;
       }
       .report-date {
         font-size: 24px;
@@ -577,11 +602,17 @@
         white-space: normal;
         overflow-wrap: anywhere;
         word-break: break-word;
+        display: grid;
+        gap: 2px;
+      }
+      .report-meta span {
+        display: block;
       }
       .report-action {
         font-size: 13px;
         justify-self: start;
-        padding-top: 2px;
+        padding: 4px 0 0;
+        line-height: 1.4;
       }
       .summary-hero { padding: 19px 17px; border-radius: 20px; }
       .summary-title { font-size: 27px; }
@@ -954,7 +985,11 @@
 
         const meta = document.createElement("div");
         meta.className = "report-meta";
-        meta.innerText = `Lexile（蓝思值）${report.lexileScore || "-"}\n${buildPRFriendly(report)}\n${buildSummary(report)}`;
+        meta.innerHTML = `
+          <span>Lexile（蓝思值）${report.lexileScore || "-"}</span>
+          <span>${buildPRFriendly(report)}</span>
+          <span>${buildSummary(report)}</span>
+        `;
 
         left.appendChild(date);
         left.appendChild(meta);
