@@ -68,14 +68,19 @@
       object-fit: contain;
     }
 
+    .speiyou-logo {
+      width: 260px;
+      max-height: 78px;
+    }
+
     .xcellent-logo {
-      width: 146px;
-      max-height: 96px;
+      width: 138px;
+      max-height: 92px;
     }
 
     .star-logo {
-      width: 330px;
-      max-height: 88px;
+      width: 220px;
+      max-height: 54px;
     }
 
     .brand-divider {
@@ -289,6 +294,32 @@
       font-size: 20px;
       font-weight: 950;
       line-height: 1.35;
+    }
+
+    .system-logo {
+      width: 180px;
+      max-height: 48px;
+      object-fit: contain;
+      object-position: left center;
+      margin-bottom: 2px;
+      display: none;
+    }
+
+    .system-card[data-system="star-reading"] .system-logo {
+      display: block;
+    }
+
+    .module-logo {
+      width: 210px;
+      max-height: 52px;
+      object-fit: contain;
+      object-position: left center;
+      margin-bottom: 8px;
+      display: none;
+    }
+
+    .module-logo.show {
+      display: block;
     }
 
     .system-desc {
@@ -730,8 +761,9 @@
         border-radius: 20px;
         gap: 10px;
       }
-      .xcellent-logo { width: 96px; max-height: 66px; }
-      .star-logo { width: 190px; max-height: 58px; }
+      .speiyou-logo { width: 170px; max-height: 56px; }
+      .xcellent-logo { width: 86px; max-height: 60px; }
+      .star-logo { width: 170px; max-height: 46px; }
       .brand-divider { height: 42px; }
       h1 { font-size: 23px; }
       .subtitle { font-size: 13px; line-height: 1.65; }
@@ -740,6 +772,8 @@
       .welcome-title, .student-name { font-size: 22px; }
       .welcome-meta, .student-meta { font-size: 13px; }
       .system-title { font-size: 18px; }
+      .system-logo { width: 160px; max-height: 44px; }
+      .module-logo { width: 170px; max-height: 46px; }
       .duration-top { border-radius: 16px; padding: 13px 14px; }
       .duration-value { font-size: 18px; }
       .report-picker { padding: 17px; border-radius: 20px; }
@@ -797,9 +831,9 @@
   <main class="page">
     <section class="hero">
       <div class="brand-logos">
-        <img class="brand-logo xcellent-logo" src="assets/xcellent-logo.png" alt="Xcellent logo" />
+        <img class="brand-logo speiyou-logo" src="assets/speiyou-logo.png" alt="学而思 logo" />
         <div class="brand-divider"></div>
-        <img class="brand-logo star-logo" src="assets/star-reading-logo.webp" alt="Star Reading logo" />
+        <img class="brand-logo xcellent-logo" src="assets/xcellent-logo.png" alt="Xcellent logo" />
       </div>
       <h1>学而思国际素养高端体系<br>信息查询平台</h1>
       <p class="subtitle">
@@ -846,6 +880,7 @@
 
     <div id="moduleBar" class="module-bar">
       <div>
+        <img id="moduleStarLogo" class="module-logo" src="assets/star-reading-logo.webp" alt="Star Reading logo" />
         <div id="moduleBarTitle" class="module-bar-title"></div>
         <div id="moduleBarSub" class="module-bar-sub"></div>
       </div>
@@ -1210,11 +1245,13 @@
       SYSTEMS.forEach(system => {
         const card = document.createElement("div");
         card.className = `system-card ${system.status}`;
+        card.setAttribute("data-system", system.id);
         if (system.status === "online") {
           card.onclick = () => openSystem(system.id);
         }
 
         card.innerHTML = `
+          ${system.id === "star-reading" ? '<img class="system-logo" src="assets/star-reading-logo.webp" alt="Star Reading logo" />' : ""}
           <span class="system-status ${system.status}">${system.status === "online" ? "已开放" : "即将开放"}</span>
           <div class="system-title">${system.title}</div>
           <div class="system-desc">${system.description}</div>
@@ -1303,6 +1340,7 @@
       document.getElementById("loginCard").style.display = "block";
       document.getElementById("platformCard").style.display = "none";
       document.getElementById("moduleBar").style.display = "none";
+      document.getElementById("moduleStarLogo").classList.remove("show");
       document.getElementById("starModule").style.display = "none";
       document.getElementById("ticketModule").style.display = "none";
       document.getElementById("result").style.display = "none";
@@ -1315,6 +1353,7 @@
       document.getElementById("moduleBar").style.display = "flex";
 
       if (id === "star-reading") {
+        document.getElementById("moduleStarLogo").classList.add("show");
         document.getElementById("moduleBarTitle").innerText = "Star Reading 阅读报告查询";
         document.getElementById("moduleBarSub").innerText = "查看测评记录、阅读能力解读及原始报告 PDF";
         document.getElementById("starModule").style.display = "block";
@@ -1323,6 +1362,7 @@
       }
 
       if (id === "parent-meeting-ticket") {
+        document.getElementById("moduleStarLogo").classList.remove("show");
         document.getElementById("moduleBarTitle").innerText = "线下家长会门票获取";
         document.getElementById("moduleBarSub").innerText = "查看并获取线下家长会入场凭证";
         document.getElementById("starModule").style.display = "none";
@@ -1334,6 +1374,7 @@
 
     function backToPlatform() {
       document.getElementById("moduleBar").style.display = "none";
+      document.getElementById("moduleStarLogo").classList.remove("show");
       document.getElementById("starModule").style.display = "none";
       document.getElementById("ticketModule").style.display = "none";
       document.getElementById("platformCard").style.display = "block";

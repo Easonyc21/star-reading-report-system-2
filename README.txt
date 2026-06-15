@@ -96,3 +96,10 @@ V16 后台平台化升级：
 4. 家长端 index.html 改为从 get-systems 动态读取入口配置。
 5. Star Reading 报告管理保留单份上传、批量上传和快速检查。
 6. 家长会门票管理先做占位模块，下一步开发。
+
+
+V17 品牌联名调整：
+1. 顶部平台 Logo 改为“学而思 × Xcellent / X班”联名展示。
+2. Star Reading Logo 从顶部移除，改为出现在 Star Reading 入口卡片里。
+3. 进入 Star Reading 报告查询模块后，模块顶部显示 Star Reading Logo。
+4. 保留 V16 平台后台、入口管理、Star Reading 报告管理、批量上传等功能。
