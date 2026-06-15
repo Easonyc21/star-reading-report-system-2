@@ -1,7 +1,5 @@
 import { getStore } from "@netlify/blobs";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { seedReports } from "./seed-reports.mjs";
 
 function normalize(text) {
   return String(text || "").trim().toLowerCase().replace(/\s+/g, "");
@@ -10,36 +8,6 @@ function normalize(text) {
 function dateValue(value) {
   const t = Date.parse(String(value || "").replace(/-/g, "/"));
   return Number.isFinite(t) ? t : 0;
-}
-
-function loadSeedReports() {
-  try {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-
-    // Most reliable path: seed-reports.json is copied directly beside this function.
-    const localSeedPath = path.join(__dirname, "seed-reports.json");
-
-    const possiblePaths = [
-      localSeedPath,
-      path.join(process.cwd(), "data", "seed-reports.json"),
-      path.join(process.cwd(), "seed-reports.json")
-    ];
-
-    for (const p of possiblePaths) {
-      if (fs.existsSync(p)) {
-        const text = fs.readFileSync(p, "utf-8");
-        const parsed = JSON.parse(text);
-        return Array.isArray(parsed) ? parsed : [];
-      }
-    }
-
-    console.error("seed-reports.json not found. Checked:", possiblePaths);
-    return [];
-  } catch (err) {
-    console.error("Failed to load seed reports:", err);
-    return [];
-  }
 }
 
 async function getDynamicReports() {
@@ -78,7 +46,6 @@ export async function handler(event) {
       };
     }
 
-    const seedReports = loadSeedReports();
     const dynamicReports = await getDynamicReports();
     const allReports = [...seedReports, ...dynamicReports];
 

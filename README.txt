@@ -54,7 +54,8 @@ V9 完整修复：
 4. search-reports 返回 debug.seedCount，方便确认历史数据是否被读取。
 
 
-V10 修复：
-1. 将 seed-reports.json 复制到 netlify/functions/seed-reports.json。
-2. search-reports 优先读取函数同级目录下的 seed-reports.json，避免 Netlify 运行路径差异导致 seedCount=0。
-3. health 同时检查 process.cwd/data 和 functionDir 两个位置的数据。
+V11 修复：
+1. 彻底移除 search-reports 和 health 对 fs/path/import.meta.url 的依赖。
+2. 将 117 条 seed 数据生成到 netlify/functions/seed-reports.mjs。
+3. search-reports 直接 import seedReports，避免 Netlify 函数运行路径差异。
+4. 保留后台批量上传功能和现有 117 份 PDF。

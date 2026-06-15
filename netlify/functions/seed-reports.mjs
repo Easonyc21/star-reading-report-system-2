@@ -1,4 +1,4 @@
-[
+export const seedReports = [
   {
     "studentId": "241010088333",
     "chineseName": "宫梓淇",
@@ -2456,4 +2456,4 @@
     "foundations": "97",
     "vocabulary": "96"
   }
-]
+];

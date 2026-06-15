@@ -4,8 +4,3 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_files = [
-    "data/seed-reports.json",
-    "data/**",
-    "netlify/functions/seed-reports.json"
-  ]
