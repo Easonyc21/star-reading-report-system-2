@@ -271,12 +271,13 @@
       background: #fff;
       padding: 14px 16px;
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 12px;
       align-items: center;
       text-align: left;
       cursor: pointer;
       transition: all .18s ease;
+      overflow: hidden;
     }
 
     .report-item:hover {
@@ -302,6 +303,9 @@
       color: var(--muted);
       font-size: 13px;
       line-height: 1.5;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .report-action {
@@ -309,6 +313,7 @@
       font-weight: 900;
       font-size: 14px;
       white-space: nowrap;
+      align-self: center;
     }
 
     .latest-tag {
@@ -551,8 +556,33 @@
       .duration-top { border-radius: 16px; padding: 13px 14px; }
       .duration-value { font-size: 18px; }
       .report-picker { padding: 17px; border-radius: 20px; }
-      .report-item { grid-template-columns: 1fr; gap: 8px; }
-      .report-action { font-size: 13px; }
+      .report-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 14px;
+        overflow: visible;
+      }
+      .report-date {
+        font-size: 24px;
+        line-height: 1.2;
+        white-space: normal;
+      }
+      .latest-tag {
+        margin-left: 6px;
+        vertical-align: 3px;
+      }
+      .report-meta {
+        font-size: 13px;
+        line-height: 1.65;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+      .report-action {
+        font-size: 13px;
+        justify-self: start;
+        padding-top: 2px;
+      }
       .summary-hero { padding: 19px 17px; border-radius: 20px; }
       .summary-title { font-size: 27px; }
       .summary-sub { font-size: 14px; }
@@ -818,24 +848,93 @@
       return `建议优先参考 Lexile（蓝思值）推荐区间 ${range} 选择英文读物，同时参考 IRL：孩子目前${irlFriendly}。\n\n选书时不建议只追求更高难度，而要优先选择孩子能较顺畅读懂、同时有少量挑战的材料。如果孩子读得非常轻松，可以逐步上探难度；如果阅读中频繁卡顿、需要大量翻译或解释，则说明材料可能偏难，应适当降低难度，先保证阅读连续性和理解质量。`;
     }
 
-    function buildAdvice(student) {
-      const scores = [
-        ["文学文本理解", num(student.literatureComprehension)],
-        ["文学文本结构", num(student.literatureStructure)],
-        ["信息类文本理解", num(student.informationalComprehension)],
-        ["阅读基础", num(student.foundations)],
-        ["词汇发展", num(student.vocabulary)]
-      ].filter(item => item[1] != null);
+    function classifyOverall(student) {
+      const pr = num(student.pr);
+      const lexile = num(student.lexileScore);
+      const ge = num(student.ge);
 
-      let weakest = "";
-      if (scores.length) {
-        scores.sort((a, b) => a[1] - b[1]);
-        weakest = scores[0][0];
+      if ((pr != null && pr >= 95) || (lexile != null && lexile >= 500) || (ge != null && ge >= 3.5)) {
+        return "advanced";
+      }
+      if ((pr != null && pr >= 75) || (lexile != null && lexile >= 300) || (ge != null && ge >= 2.5)) {
+        return "solid";
+      }
+      return "developing";
+    }
+
+    function getDomainInfo(student) {
+      const domains = [
+        {
+          key: "literatureComprehension",
+          name: "文学文本理解",
+          value: num(student.literatureComprehension),
+          advice: "阅读故事类文本时，可以重点追问人物做了什么、为什么这样做、故事中最关键的转折是什么。读完后建议让孩子按“开头—经过—结果”复述，并补充一个自己印象最深的细节。"
+        },
+        {
+          key: "literatureStructure",
+          name: "文学文本结构",
+          value: num(student.literatureStructure),
+          advice: "阅读故事或小说时，可以多关注文本结构和作者写法，例如故事山、时间顺序、对话作用、人物变化等。家长可以引导孩子说出“作者为什么这样安排情节”，帮助孩子从读懂内容逐步走向理解结构。"
+        },
+        {
+          key: "informationalComprehension",
+          name: "信息类文本理解",
+          value: num(student.informationalComprehension),
+          advice: "建议适当增加非虚构和科普类阅读。阅读时重点练习找主旨、抓关键词、区分事实与观点，并让孩子用自己的话复述一段信息类文本的核心内容。"
+        },
+        {
+          key: "foundations",
+          name: "阅读基础",
+          value: num(student.foundations),
+          advice: "建议先保证材料的可读性和流利度，不急于追求更高难度。可以选择短篇、可重复阅读的材料，重点观察孩子是否能较顺畅地识词、读句子、理解句意，并逐步减少对中文解释的依赖。"
+        },
+        {
+          key: "vocabulary",
+          name: "词汇发展",
+          value: num(student.vocabulary),
+          advice: "建议在持续阅读中增加词汇复现。读后可以挑选 3-5 个高频词或主题词，让孩子说出意思、造一个简单句，或在下一次阅读中主动寻找这些词的再次出现。"
+        }
+      ].filter(d => d.value != null);
+
+      if (!domains.length) return null;
+
+      domains.sort((a, b) => a.value - b.value);
+      return domains[0];
+    }
+
+    function buildAdvice(student) {
+      const overall = classifyOverall(student);
+      const weakest = getDomainInfo(student);
+      const range = student.lexileRange || "-";
+      const irl = student.irl || "-";
+      const irlFriendly = buildIRLFriendly(student);
+
+      let levelAdvice = "";
+      if (overall === "advanced") {
+        levelAdvice = "孩子目前整体阅读表现较好，后续重点不应只是继续堆高难度，而是要扩大阅读广度和文本类型。可以在保持故事类阅读兴趣的基础上，增加非虚构、科普、历史、传记等材料，并鼓励孩子进行读后表达。";
+      } else if (overall === "solid") {
+        levelAdvice = "孩子目前已经具备一定的英文阅读基础，后续建议以“稳定阅读量 + 提升理解质量”为主。选书时可以选择孩子大部分能顺利理解、同时有少量新词和新信息的材料。";
+      } else {
+        levelAdvice = "孩子目前更需要先建立稳定的阅读信心和阅读流利度。后续不建议盲目上探难度，而应优先选择孩子能读顺、能读完、能说清大意的材料。";
       }
 
-      let focus = weakest ? `从分项结果看，可以特别关注“${weakest}”这一维度的持续训练。` : "后续可以继续关注阅读理解、词汇积累和读后表达。";
+      let domainAdvice = "";
+      if (weakest) {
+        domainAdvice = `从分项结果看，“${weakest.name}”是相对更需要关注的维度。${weakest.advice}`;
+      } else {
+        domainAdvice = "从分项结果看，后续可以继续关注阅读理解、词汇积累和读后表达。";
+      }
 
-      return `${focus}\n\n家庭阅读中建议保持稳定的英文阅读时间，优先保证每天持续阅读。读完后，不需要大量做题，可以让孩子用 3-5 句话复述主要内容，并说出一个自己最感兴趣的细节。阅读非虚构文本时，可以重点练习找主旨、找细节、做简单推理；阅读故事类文本时，可以关注人物、情节、原因和结果。`;
+      let materialAdvice = "";
+      if (overall === "advanced") {
+        materialAdvice = `选书时建议参考 Lexile（蓝思值）推荐区间 ${range}，可以在区间内选择信息密度更高、主题更丰富的材料。IRL 为 ${irl}，孩子目前${irlFriendly}，教学材料可以适度保持挑战，但仍要避免长期阅读明显超出理解能力的材料。`;
+      } else if (overall === "solid") {
+        materialAdvice = `选书时建议优先参考 Lexile（蓝思值）推荐区间 ${range}，保持“读得懂但有挑战”的状态。IRL 为 ${irl}，孩子目前${irlFriendly}，可以用这个水平来辅助判断教学材料和分级读物难度。`;
+      } else {
+        materialAdvice = `选书时建议更多参考 IRL，而不是只看更高的 GE 或更高的蓝思值。IRL 为 ${irl}，孩子目前${irlFriendly}。如果孩子阅读时频繁卡顿、需要大量翻译，说明材料偏难，应先降低难度，保证阅读连续性。`;
+      }
+
+      return `${levelAdvice}\n\n${domainAdvice}\n\n${materialAdvice}`;
     }
 
     function renderReportList() {
@@ -855,7 +954,7 @@
 
         const meta = document.createElement("div");
         meta.className = "report-meta";
-        meta.innerText = `Lexile（蓝思值）${report.lexileScore || "-"}｜${buildPRFriendly(report)}｜${buildSummary(report)}`;
+        meta.innerText = `Lexile（蓝思值）${report.lexileScore || "-"}\n${buildPRFriendly(report)}\n${buildSummary(report)}`;
 
         left.appendChild(date);
         left.appendChild(meta);
