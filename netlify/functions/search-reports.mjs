@@ -25,10 +25,13 @@ function loadSeedReports() {
 
     for (const p of possiblePaths) {
       if (fs.existsSync(p)) {
-        return JSON.parse(fs.readFileSync(p, "utf-8"));
+        const text = fs.readFileSync(p, "utf-8");
+        const parsed = JSON.parse(text);
+        return Array.isArray(parsed) ? parsed : [];
       }
     }
 
+    console.error("seed-reports.json not found. Checked:", possiblePaths);
     return [];
   } catch (err) {
     console.error("Failed to load seed reports:", err);
@@ -89,14 +92,24 @@ export async function handler(event) {
         "Content-Type": "application/json; charset=utf-8",
         "Cache-Control": "no-store"
       },
-      body: JSON.stringify({ reports, total: reports.length })
+      body: JSON.stringify({
+        reports,
+        total: reports.length,
+        debug: {
+          seedCount: seedReports.length,
+          dynamicCount: dynamicReports.length
+        }
+      })
     };
   } catch (err) {
     console.error("Search failed:", err);
     return {
       statusCode: 500,
       headers: { "Content-Type": "application/json; charset=utf-8" },
-      body: JSON.stringify({ error: "Search failed", detail: String(err && err.message ? err.message : err) })
+      body: JSON.stringify({
+        error: "Search failed",
+        detail: String(err && err.message ? err.message : err)
+      })
     };
   }
 }
