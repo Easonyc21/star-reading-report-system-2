@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Star Reading 阅读报告查询系统</title>
+  <title>学而思国际素养高端体系信息查询平台</title>
   <style>
     :root {
       --primary: #184CFF;
@@ -20,6 +20,7 @@
       --green-bg: #ECFDF5;
       --green-line: #BBF7D0;
       --green-text: #047857;
+      --blue-bg: #EEF2FF;
     }
 
     * { box-sizing: border-box; }
@@ -99,7 +100,7 @@
       font-size: 15px;
     }
 
-    .query-card, .result {
+    .query-card, .result, .platform-card {
       background: rgba(255,255,255,0.94);
       border: 1px solid rgba(255,255,255,0.96);
       border-radius: 28px;
@@ -162,6 +163,16 @@
       transform: translateY(-1px);
     }
 
+    button.secondary {
+      background: #fff;
+      color: var(--primary);
+      border: 1px solid #DDE5FF;
+    }
+
+    button.secondary:hover {
+      background: #F3F6FF;
+    }
+
     .tip {
       margin-top: 14px;
       color: var(--muted);
@@ -178,6 +189,156 @@
       border: 1px solid var(--orange-line);
       color: var(--orange-text);
       line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .platform-card {
+      display: none;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .platform-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .welcome-title {
+      margin: 0 0 8px;
+      font-size: 27px;
+      line-height: 1.25;
+      font-weight: 900;
+    }
+
+    .welcome-meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .logout-btn {
+      width: auto;
+      min-width: 104px;
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 14px;
+      font-size: 14px;
+    }
+
+    .system-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .system-card {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 20px;
+      background: #fff;
+      min-height: 168px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all .18s ease;
+    }
+
+    .system-card.online {
+      cursor: pointer;
+    }
+
+    .system-card.online:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(24,76,255,0.08);
+      transform: translateY(-1px);
+    }
+
+    .system-card.offline {
+      opacity: .68;
+      background: #F9FAFB;
+    }
+
+    .system-status {
+      display: inline-flex;
+      align-items: center;
+      align-self: flex-start;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .system-status.online {
+      color: var(--green-text);
+      background: var(--green-bg);
+      border: 1px solid var(--green-line);
+    }
+
+    .system-status.offline {
+      color: var(--muted);
+      background: #F3F4F6;
+      border: 1px solid var(--line);
+    }
+
+    .system-title {
+      font-size: 20px;
+      font-weight: 950;
+      line-height: 1.35;
+    }
+
+    .system-desc {
+      color: #4B5563;
+      line-height: 1.75;
+      font-size: 14px;
+      flex: 1;
+    }
+
+    .system-action {
+      color: var(--primary);
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .module {
+      display: none;
+    }
+
+    .module-bar {
+      display: none;
+      margin-bottom: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 14px;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 10px 28px rgba(15,23,42,0.05);
+    }
+
+    .module-bar-title {
+      font-weight: 900;
+      font-size: 16px;
+    }
+
+    .module-bar-sub {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 3px;
+    }
+
+    .back-btn {
+      width: auto;
+      min-width: 120px;
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 14px;
       font-size: 14px;
     }
 
@@ -549,7 +710,10 @@
 
     @media (max-width: 920px) {
       .form-grid { grid-template-columns: 1fr; gap: 12px; }
-      .student-head { flex-direction: column; gap: 14px; }
+      .platform-head, .student-head { flex-direction: column; gap: 14px; }
+      .logout-btn, .back-btn { width: 100%; }
+      .system-grid { grid-template-columns: 1fr; }
+      .module-bar { flex-direction: column; align-items: stretch; }
       .duration-top { width: 100%; text-align: left; }
       .download-card { flex-direction: column; }
       .metric-grid.assessment, .metric-grid.materials { grid-template-columns: 1fr; }
@@ -571,10 +735,11 @@
       .brand-divider { height: 42px; }
       h1 { font-size: 23px; }
       .subtitle { font-size: 13px; line-height: 1.65; }
-      .query-card, .result { border-radius: 22px; padding: 16px; }
+      .query-card, .result, .platform-card { border-radius: 22px; padding: 16px; }
       input, button { height: 50px; font-size: 15px; border-radius: 14px; }
-      .student-name { font-size: 22px; }
-      .student-meta { font-size: 13px; }
+      .welcome-title, .student-name { font-size: 22px; }
+      .welcome-meta, .student-meta { font-size: 13px; }
+      .system-title { font-size: 18px; }
       .duration-top { border-radius: 16px; padding: 13px 14px; }
       .duration-value { font-size: 18px; }
       .report-picker { padding: 17px; border-radius: 20px; }
@@ -636,13 +801,13 @@
         <div class="brand-divider"></div>
         <img class="brand-logo star-logo" src="assets/star-reading-logo.webp" alt="Star Reading logo" />
       </div>
-      <h1>Star Reading 阅读报告查询系统</h1>
+      <h1>学而思国际素养高端体系<br>信息查询平台</h1>
       <p class="subtitle">
-        请输入学员编号和孩子中文名，查询孩子的 Star Reading 历史测评记录、中文解读与原始 PDF 报告。
+        请输入学员编号和孩子真实中文名，进入专属信息查询页面。
       </p>
     </section>
 
-    <section class="query-card">
+    <section id="loginCard" class="query-card">
       <div class="form-grid">
         <div>
           <label for="studentId">学员编号</label>
@@ -650,150 +815,208 @@
         </div>
         <div>
           <label for="chineseName">孩子中文名</label>
-          <input id="chineseName" type="text" placeholder="请输入孩子中文名" autocomplete="off" />
+          <input id="chineseName" type="text" placeholder="请输入孩子真实中文名" autocomplete="off" />
         </div>
         <div>
-          <button onclick="searchReports()">点击查询</button>
+          <button onclick="loginPlatform()">进入平台</button>
         </div>
       </div>
       <div class="tip">
-        为保护学员隐私，本系统需要同时输入学员编号和孩子中文名。查询成功后，可选择具体测评时间查看报告解读，并下载对应原始 PDF。
+        为保护学员隐私，本平台需要同时输入学员编号和孩子真实中文名。进入后可查看已开放的信息查询服务。
       </div>
       <div id="notFound" class="not-found"></div>
     </section>
 
-    <section id="result" class="result">
-      <div class="student-head">
-        <div class="student-main">
-          <h2 id="name" class="student-name"></h2>
-          <div id="meta" class="student-meta"></div>
+    <section id="platformCard" class="platform-card">
+      <div class="platform-head">
+        <div>
+          <h2 id="welcomeTitle" class="welcome-title"></h2>
+          <div id="welcomeMeta" class="welcome-meta"></div>
         </div>
-        <div id="durationTop" class="duration-top">
-          <div class="duration-label">当前查看报告测试用时</div>
-          <div id="testDurationTop" class="duration-value"></div>
-        </div>
+        <button class="secondary logout-btn" onclick="logoutPlatform()">退出</button>
       </div>
 
-      <div class="report-picker">
-        <h3>测评记录</h3>
-        <p id="reportCountText"></p>
-        <div id="reportList" class="report-list"></div>
+      <div class="section white" style="margin-top:20px;">
+        <h3>请选择需要查询的服务</h3>
+        <p>平台服务会根据当前开放情况展示。后续如有新的测评、活动或资料入口，也会统一在这里进入。</p>
       </div>
 
-      <div id="detailWrap" class="detail-wrap">
-        <div class="summary-hero">
-          <div class="summary-label">本次测评结论</div>
-          <div id="summaryBadge" class="summary-title"></div>
-          <div id="summarySub" class="summary-sub"></div>
+      <div id="systemGrid" class="system-grid"></div>
+    </section>
+
+    <div id="moduleBar" class="module-bar">
+      <div>
+        <div id="moduleBarTitle" class="module-bar-title"></div>
+        <div id="moduleBarSub" class="module-bar-sub"></div>
+      </div>
+      <button class="secondary back-btn" onclick="backToPlatform()">返回平台首页</button>
+    </div>
+
+    <section id="starModule" class="module">
+      <section id="result" class="result">
+        <div class="student-head">
+          <div class="student-main">
+            <h2 id="name" class="student-name"></h2>
+            <div id="meta" class="student-meta"></div>
+          </div>
+          <div id="durationTop" class="duration-top">
+            <div class="duration-label">当前查看报告测试用时</div>
+            <div id="testDurationTop" class="duration-value"></div>
+          </div>
         </div>
 
+        <div class="report-picker">
+          <h3>测评记录</h3>
+          <p id="reportCountText"></p>
+          <div id="reportList" class="report-list"></div>
+        </div>
+
+        <div id="detailWrap" class="detail-wrap">
+          <div class="summary-hero">
+            <div class="summary-label">本次测评结论</div>
+            <div id="summaryBadge" class="summary-title"></div>
+            <div id="summarySub" class="summary-sub"></div>
+          </div>
+
+          <div class="section white">
+            <h3>一、孩子本次测评表现</h3>
+            <div class="metric-grid assessment">
+              <div class="metric">
+                <div class="metric-label">当前 Lexile（蓝思值）</div>
+                <div id="lexileScore" class="metric-value"></div>
+                <div class="metric-note">可以理解为孩子当前英文阅读能力的蓝思水平。</div>
+              </div>
+
+              <div class="metric">
+                <div class="metric-label">超过美国同年级学生比例</div>
+                <div id="prFriendly" class="metric-value text-value"></div>
+                <div class="metric-note">由 PR 百分位转化而来，表示孩子在美国同年级常模中的相对位置。</div>
+              </div>
+
+              <div class="metric">
+                <div class="metric-label">GE 年级等值</div>
+                <div id="geRaw" class="metric-value"></div>
+                <div id="geFriendly" class="metric-note"></div>
+                <div class="metric-note">这是阅读表现参考，不等于孩子真实就读年级。</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section white">
+            <h3>二、阅读材料与教学材料参考</h3>
+            <p class="section-intro">帮助理解孩子现在更适合接触什么难度的英文读物和学习材料。</p>
+            <div class="metric-grid materials">
+              <div class="metric">
+                <div class="metric-label">Lexile（蓝思值）推荐区间</div>
+                <div id="lexileRange" class="metric-value"></div>
+                <div class="metric-note">选书难度参考，建议优先选择这个区间附近的读物。</div>
+              </div>
+
+              <div class="metric">
+                <div class="metric-label">IRL 阅读水平</div>
+                <div id="irlRaw" class="metric-value"></div>
+                <div id="irlFriendly" class="metric-note"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>三、这份报告说明了什么？</h3>
+            <p id="interpretation"></p>
+          </div>
+
+          <div class="section">
+            <h3>四、分项能力表现</h3>
+            <p>以下分项分数为 Star Reading 对不同阅读能力维度的估计掌握度，满分为 100。它可以帮助我们判断孩子的优势和后续需要继续巩固的方向。</p>
+            <div class="domain-grid">
+              <div class="domain-card">
+                <div class="domain-title">文学文本理解<br>人物、情节与核心信息</div>
+                <div id="literatureComprehension" class="domain-score"></div>
+                <div class="bar"><div id="bar1" class="bar-inner"></div></div>
+              </div>
+              <div class="domain-card">
+                <div class="domain-title">文学文本结构<br>体裁、结构与作者写法</div>
+                <div id="literatureStructure" class="domain-score"></div>
+                <div class="bar"><div id="bar2" class="bar-inner"></div></div>
+              </div>
+              <div class="domain-card">
+                <div class="domain-title">信息类文本理解<br>事实信息与信息整合</div>
+                <div id="informationalComprehension" class="domain-score"></div>
+                <div class="bar"><div id="bar3" class="bar-inner"></div></div>
+              </div>
+              <div class="domain-card">
+                <div class="domain-title">阅读基础<br>拼读、识词与基础阅读</div>
+                <div id="foundations" class="domain-score"></div>
+                <div class="bar"><div id="bar4" class="bar-inner"></div></div>
+              </div>
+              <div class="domain-card">
+                <div class="domain-title">词汇发展<br>词义理解与词汇积累</div>
+                <div id="vocabulary" class="domain-score"></div>
+                <div class="bar"><div id="bar5" class="bar-inner"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>五、孩子现在适合读什么？</h3>
+            <p id="readingRange"></p>
+          </div>
+
+          <div class="section">
+            <h3>六、下一步阅读建议</h3>
+            <p id="advice"></p>
+          </div>
+
+          <div class="download-card">
+            <div>
+              <h3>原始 Star Reading 报告</h3>
+              <p>点击右侧按钮可打开当前所选测评记录的原始 PDF 报告。打开后可在浏览器中下载或保存，建议家长留存。</p>
+            </div>
+            <a id="pdfLink" class="pdf-btn" href="#" target="_blank" rel="noopener">查看 / 下载 PDF</a>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section id="ticketModule" class="module">
+      <div class="result" style="display:block;">
         <div class="section white">
-          <h3>一、孩子本次测评表现</h3>
-          <div class="metric-grid assessment">
-            <div class="metric">
-              <div class="metric-label">当前 Lexile（蓝思值）</div>
-              <div id="lexileScore" class="metric-value"></div>
-              <div class="metric-note">可以理解为孩子当前英文阅读能力的蓝思水平。</div>
-            </div>
-
-            <div class="metric">
-              <div class="metric-label">超过美国同年级学生比例</div>
-              <div id="prFriendly" class="metric-value text-value"></div>
-              <div class="metric-note">由 PR 百分位转化而来，表示孩子在美国同年级常模中的相对位置。</div>
-            </div>
-
-            <div class="metric">
-              <div class="metric-label">GE 年级等值</div>
-              <div id="geRaw" class="metric-value"></div>
-              <div id="geFriendly" class="metric-note"></div>
-              <div class="metric-note">这是阅读表现参考，不等于孩子真实就读年级。</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="section white">
-          <h3>二、阅读材料与教学材料参考</h3>
-          <p class="section-intro">帮助理解孩子现在更适合接触什么难度的英文读物和学习材料。</p>
-          <div class="metric-grid materials">
-            <div class="metric">
-              <div class="metric-label">Lexile（蓝思值）推荐区间</div>
-              <div id="lexileRange" class="metric-value"></div>
-              <div class="metric-note">选书难度参考，建议优先选择这个区间附近的读物。</div>
-            </div>
-
-            <div class="metric">
-              <div class="metric-label">IRL 阅读水平</div>
-              <div id="irlRaw" class="metric-value"></div>
-              <div id="irlFriendly" class="metric-note"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <h3>三、这份报告说明了什么？</h3>
-          <p id="interpretation"></p>
-        </div>
-
-        <div class="section">
-          <h3>四、分项能力表现</h3>
-          <p>以下分项分数为 Star Reading 对不同阅读能力维度的估计掌握度，满分为 100。它可以帮助我们判断孩子的优势和后续需要继续巩固的方向。</p>
-          <div class="domain-grid">
-            <div class="domain-card">
-              <div class="domain-title">文学文本理解<br>人物、情节与核心信息</div>
-              <div id="literatureComprehension" class="domain-score"></div>
-              <div class="bar"><div id="bar1" class="bar-inner"></div></div>
-            </div>
-            <div class="domain-card">
-              <div class="domain-title">文学文本结构<br>体裁、结构与作者写法</div>
-              <div id="literatureStructure" class="domain-score"></div>
-              <div class="bar"><div id="bar2" class="bar-inner"></div></div>
-            </div>
-            <div class="domain-card">
-              <div class="domain-title">信息类文本理解<br>事实信息与信息整合</div>
-              <div id="informationalComprehension" class="domain-score"></div>
-              <div class="bar"><div id="bar3" class="bar-inner"></div></div>
-            </div>
-            <div class="domain-card">
-              <div class="domain-title">阅读基础<br>拼读、识词与基础阅读</div>
-              <div id="foundations" class="domain-score"></div>
-              <div class="bar"><div id="bar4" class="bar-inner"></div></div>
-            </div>
-            <div class="domain-card">
-              <div class="domain-title">词汇发展<br>词义理解与词汇积累</div>
-              <div id="vocabulary" class="domain-score"></div>
-              <div class="bar"><div id="bar5" class="bar-inner"></div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <h3>五、孩子现在适合读什么？</h3>
-          <p id="readingRange"></p>
-        </div>
-
-        <div class="section">
-          <h3>六、下一步阅读建议</h3>
-          <p id="advice"></p>
-        </div>
-
-        <div class="download-card">
-          <div>
-            <h3>原始 Star Reading 报告</h3>
-            <p>点击右侧按钮可打开当前所选测评记录的原始 PDF 报告。打开后可在浏览器中下载或保存，建议家长留存。</p>
-          </div>
-          <a id="pdfLink" class="pdf-btn" href="#" target="_blank" rel="noopener">查看 / 下载 PDF</a>
+          <h3>线下家长会门票获取</h3>
+          <p>该服务入口即将开放。开放后，家长可在这里查看并获取本次线下家长会入场凭证。</p>
         </div>
       </div>
     </section>
 
     <p class="footer-note">
-      本页面仅用于学员个人学习报告查询。请妥善保管学员信息和报告文件，不要公开传播。
+      本页面仅用于学员个人信息查询。请妥善保管学员信息和报告文件，不要公开传播。
     </p>
   </main>
 
   <script>
+    const DEFAULT_SYSTEMS = [
+      {
+        id: "star-reading",
+        title: "Star Reading 阅读报告查询",
+        description: "查看孩子的 Star Reading 测评记录、阅读能力解读及原始报告 PDF。",
+        status: "online",
+        actionText: "进入查询",
+        sortOrder: 1
+      },
+      {
+        id: "parent-meeting-ticket",
+        title: "线下家长会门票获取",
+        description: "查看并获取本次线下家长会入场凭证。该服务即将开放。",
+        status: "offline",
+        actionText: "即将开放",
+        sortOrder: 2
+      }
+    ];
+
+    let SYSTEMS = [...DEFAULT_SYSTEMS];
+
     let currentReports = [];
     let currentSelectedIndex = 0;
+    let currentUser = null;
 
     function normalize(text) {
       return String(text || "")
@@ -968,6 +1191,155 @@
       return `${levelAdvice}\n\n${domainAdvice}\n\n${materialAdvice}`;
     }
 
+    async function fetchSystems() {
+      try {
+        const res = await fetch(`/.netlify/functions/get-systems?t=${Date.now()}`, { cache: "no-store" });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.systems) && data.systems.length) {
+          SYSTEMS = data.systems.sort((a, b) => Number(a.sortOrder || 999) - Number(b.sortOrder || 999));
+        }
+      } catch (err) {
+        SYSTEMS = [...DEFAULT_SYSTEMS];
+      }
+    }
+
+    function renderSystems() {
+      const grid = document.getElementById("systemGrid");
+      grid.innerHTML = "";
+
+      SYSTEMS.forEach(system => {
+        const card = document.createElement("div");
+        card.className = `system-card ${system.status}`;
+        if (system.status === "online") {
+          card.onclick = () => openSystem(system.id);
+        }
+
+        card.innerHTML = `
+          <span class="system-status ${system.status}">${system.status === "online" ? "已开放" : "即将开放"}</span>
+          <div class="system-title">${system.title}</div>
+          <div class="system-desc">${system.description}</div>
+          <div class="system-action">${system.actionText}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function loginPlatform() {
+      const rawId = document.getElementById("studentId").value.trim();
+      const rawName = document.getElementById("chineseName").value.trim();
+      const id = normalize(rawId);
+      const name = normalize(rawName);
+      const notFound = document.getElementById("notFound");
+
+      if (!id || !name) {
+        notFound.style.display = "block";
+        notFound.style.background = "";
+        notFound.style.borderColor = "";
+        notFound.style.color = "";
+        notFound.innerText = "请输入完整的学员编号和孩子中文名后再进入平台。";
+        return;
+      }
+
+      try {
+        notFound.style.display = "block";
+        notFound.style.background = "#EEF2FF";
+        notFound.style.borderColor = "#DDE5FF";
+        notFound.style.color = "#0F36B8";
+        notFound.innerText = "正在验证身份，请稍候...";
+
+        const url = `/.netlify/functions/search-reports?studentId=${encodeURIComponent(rawId)}&chineseName=${encodeURIComponent(rawName)}&t=${Date.now()}`;
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "验证失败");
+
+        currentReports = (data.reports || []).sort((a, b) => dateValue(b.testDate) - dateValue(a.testDate));
+
+        if (!currentReports.length) {
+          notFound.style.display = "block";
+          notFound.style.background = "";
+          notFound.style.borderColor = "";
+          notFound.style.color = "";
+          notFound.innerText = "没有查询到对应学员信息。请检查学员编号和孩子中文名是否输入正确；如仍无法进入，请联系班主任老师。";
+          return;
+        }
+
+        const first = currentReports[0];
+        currentUser = {
+          studentId: first.studentId,
+          chineseName: first.chineseName,
+          studentNameEnglish: first.studentNameEnglish,
+          className: first.className,
+          grade: first.grade
+        };
+
+        notFound.style.display = "none";
+        document.getElementById("loginCard").style.display = "none";
+        document.getElementById("platformCard").style.display = "block";
+
+        setText("welcomeTitle", `${first.chineseName}${first.studentNameEnglish ? " / " + first.studentNameEnglish : ""}`);
+        document.getElementById("welcomeMeta").innerHTML =
+          `学员编号：${first.studentId}<br>班级：${first.className || "-"}｜年级：${first.grade || "-"}｜已开放 ${SYSTEMS.filter(s => s.status === "online").length} 项查询服务`;
+
+        await fetchSystems();
+        renderSystems();
+
+        document.getElementById("platformCard").scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (err) {
+        notFound.style.display = "block";
+        notFound.style.background = "";
+        notFound.style.borderColor = "";
+        notFound.style.color = "";
+        notFound.innerText = "身份验证服务暂时不可用，请稍后再试。";
+      }
+    }
+
+    function logoutPlatform() {
+      currentReports = [];
+      currentUser = null;
+      currentSelectedIndex = 0;
+      document.getElementById("studentId").value = "";
+      document.getElementById("chineseName").value = "";
+      document.getElementById("loginCard").style.display = "block";
+      document.getElementById("platformCard").style.display = "none";
+      document.getElementById("moduleBar").style.display = "none";
+      document.getElementById("starModule").style.display = "none";
+      document.getElementById("ticketModule").style.display = "none";
+      document.getElementById("result").style.display = "none";
+      document.getElementById("detailWrap").style.display = "none";
+      document.querySelector(".hero").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function openSystem(id) {
+      document.getElementById("platformCard").style.display = "none";
+      document.getElementById("moduleBar").style.display = "flex";
+
+      if (id === "star-reading") {
+        document.getElementById("moduleBarTitle").innerText = "Star Reading 阅读报告查询";
+        document.getElementById("moduleBarSub").innerText = "查看测评记录、阅读能力解读及原始报告 PDF";
+        document.getElementById("starModule").style.display = "block";
+        document.getElementById("ticketModule").style.display = "none";
+        renderStarReading();
+      }
+
+      if (id === "parent-meeting-ticket") {
+        document.getElementById("moduleBarTitle").innerText = "线下家长会门票获取";
+        document.getElementById("moduleBarSub").innerText = "查看并获取线下家长会入场凭证";
+        document.getElementById("starModule").style.display = "none";
+        document.getElementById("ticketModule").style.display = "block";
+      }
+
+      document.getElementById("moduleBar").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function backToPlatform() {
+      document.getElementById("moduleBar").style.display = "none";
+      document.getElementById("starModule").style.display = "none";
+      document.getElementById("ticketModule").style.display = "none";
+      document.getElementById("platformCard").style.display = "block";
+      document.getElementById("platformCard").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
     function renderReportList() {
       const list = document.getElementById("reportList");
       list.innerHTML = "";
@@ -1041,88 +1413,33 @@
       renderReportList();
     }
 
-    async function searchReports() {
-      const rawId = document.getElementById("studentId").value.trim();
-      const rawName = document.getElementById("chineseName").value.trim();
-      const id = normalize(rawId);
-      const name = normalize(rawName);
-      const resultBox = document.getElementById("result");
-      const notFound = document.getElementById("notFound");
-      const detailWrap = document.getElementById("detailWrap");
+    function renderStarReading() {
+      if (!currentReports.length || !currentUser) return;
 
-      if (!id || !name) {
-        resultBox.style.display = "none";
-        detailWrap.style.display = "none";
-        notFound.style.display = "block";
-        notFound.innerText = "请输入完整的学员编号和孩子中文名后再查询。";
-        return;
-      }
+      const first = currentReports[0];
 
-      try {
-        notFound.style.display = "block";
-        notFound.style.background = "#EEF2FF";
-        notFound.style.borderColor = "#DDE5FF";
-        notFound.style.color = "#0F36B8";
-        notFound.innerText = "正在查询报告，请稍候...";
+      document.getElementById("result").style.display = "block";
 
-        const url = `/.netlify/functions/search-reports?studentId=${encodeURIComponent(rawId)}&chineseName=${encodeURIComponent(rawName)}&t=${Date.now()}`;
-        const res = await fetch(url, { cache: "no-store" });
-        const data = await res.json();
+      setText("name", `${first.chineseName}${first.studentNameEnglish ? " / " + first.studentNameEnglish : ""}`);
+      document.getElementById("meta").innerHTML =
+        `学员编号：${first.studentId}<br>班级：${first.className || "-"}｜年级：${first.grade || "-"}｜共 ${currentReports.length} 份测评报告`;
 
-        if (!res.ok) {
-          throw new Error(data.error || "查询失败");
-        }
+      document.getElementById("reportCountText").innerText =
+        currentReports.length === 1
+          ? "已查询到 1 份 Star Reading 测评报告。"
+          : `已查询到 ${currentReports.length} 份 Star Reading 测评报告，默认展示最新一次测评；也可以点击下方其他测试时间查看历史报告。`;
 
-        currentReports = (data.reports || [])
-          .sort((a, b) => dateValue(b.testDate) - dateValue(a.testDate));
-
-        if (!currentReports.length) {
-          resultBox.style.display = "none";
-          detailWrap.style.display = "none";
-          notFound.style.display = "block";
-          notFound.style.background = "";
-          notFound.style.borderColor = "";
-          notFound.style.color = "";
-          notFound.innerText = "没有查询到对应报告。请检查学员编号和孩子中文名是否输入正确；如仍无法查询，请联系班主任老师。";
-          return;
-        }
-
-        const first = currentReports[0];
-
-        notFound.style.display = "none";
-        resultBox.style.display = "block";
-
-        setText("name", `${first.chineseName}${first.studentNameEnglish ? " / " + first.studentNameEnglish : ""}`);
-        document.getElementById("meta").innerHTML =
-          `学员编号：${first.studentId}<br>班级：${first.className || "-"}｜年级：${first.grade || "-"}｜共 ${currentReports.length} 份测评报告`;
-
-        document.getElementById("reportCountText").innerText =
-          currentReports.length === 1
-            ? "已查询到 1 份 Star Reading 测评报告。"
-            : `已查询到 ${currentReports.length} 份 Star Reading 测评报告，默认展示最新一次测评；也可以点击下方其他测试时间查看历史报告。`;
-
-        currentSelectedIndex = 0;
-        renderReportList();
-        selectReport(0);
-
-        resultBox.scrollIntoView({ behavior: "smooth", block: "start" });
-      } catch (err) {
-        resultBox.style.display = "none";
-        detailWrap.style.display = "none";
-        notFound.style.display = "block";
-        notFound.style.background = "";
-        notFound.style.borderColor = "";
-        notFound.style.color = "";
-        notFound.innerText = "查询服务暂时不可用，请稍后再试。";
-      }
+      currentSelectedIndex = 0;
+      renderReportList();
+      selectReport(0);
     }
 
     document.getElementById("studentId").addEventListener("keydown", e => {
-      if (e.key === "Enter") searchReports();
+      if (e.key === "Enter") loginPlatform();
     });
 
     document.getElementById("chineseName").addEventListener("keydown", e => {
-      if (e.key === "Enter") searchReports();
+      if (e.key === "Enter") loginPlatform();
     });
   </script>
 </body>

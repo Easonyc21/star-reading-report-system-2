@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Star Reading 报告后台管理</title>
+  <title>学而思国际素养高端体系信息查询平台后台</title>
   <style>
     :root {
       --primary: #184CFF;
@@ -12,7 +12,6 @@
       --muted: #6B7280;
       --line: #E5E7EB;
       --bg: #F7F9FF;
-      --card: #FFFFFF;
       --green: #047857;
       --green-bg: #ECFDF5;
       --red: #B91C1C;
@@ -32,51 +31,57 @@
       color: var(--text);
     }
     .page {
-      max-width: 1080px;
+      max-width: 1120px;
       margin: 0 auto;
       padding: 32px 18px 50px;
     }
-    .head {
-      background: rgba(255,255,255,0.94);
+    .head, .card {
+      background: rgba(255,255,255,0.96);
       border: 1px solid rgba(255,255,255,0.96);
       border-radius: 28px;
       padding: 24px;
       box-shadow: 0 18px 55px rgba(15,23,42,0.08);
       margin-bottom: 18px;
     }
-    h1 {
-      margin: 0;
-      font-size: 28px;
-      line-height: 1.25;
+    .card {
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 36px rgba(15,23,42,0.06);
     }
-    .sub {
-      margin-top: 10px;
+    h1 { margin: 0; font-size: 28px; line-height: 1.25; }
+    h2 { margin: 0 0 14px; font-size: 20px; }
+    h3 { margin: 0 0 10px; font-size: 17px; }
+    .sub, .muted {
       color: var(--muted);
       line-height: 1.7;
       font-size: 14px;
     }
-    .card {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 22px;
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
       margin-top: 18px;
-      box-shadow: 0 12px 36px rgba(15,23,42,0.06);
     }
-    .card h2 {
-      margin: 0 0 14px;
-      font-size: 20px;
+    .tab {
+      width: auto;
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
+    .tab.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
     }
-    .grid3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
     label {
       display: block;
       margin-bottom: 7px;
@@ -84,7 +89,7 @@
       color: #374151;
       font-weight: 800;
     }
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       min-height: 48px;
       padding: 0 14px;
@@ -93,15 +98,10 @@
       outline: none;
       font-size: 15px;
       background: #fff;
-    }
-    textarea {
-      min-height: 120px;
-      padding: 12px 14px;
-      resize: vertical;
-      line-height: 1.7;
       font-family: inherit;
     }
-    input:focus, textarea:focus {
+    textarea { min-height: 96px; padding: 12px 14px; resize: vertical; line-height: 1.7; }
+    input:focus, textarea:focus, select:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(24,76,255,0.10);
     }
@@ -124,16 +124,13 @@
       border: 1px solid var(--line);
     }
     button.secondary:hover { background: #E5E7EB; }
-    button:disabled {
-      opacity: .55;
-      cursor: not-allowed;
-      transform: none;
+    button.danger {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid #FECACA;
     }
-    .muted {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.7;
-    }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .actions { margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
     .status {
       display: none;
       margin-top: 14px;
@@ -143,86 +140,18 @@
       font-size: 14px;
       white-space: pre-line;
     }
-    .status.ok {
-      display: block;
-      background: var(--green-bg);
-      color: var(--green);
-    }
-    .status.err {
-      display: block;
-      background: var(--red-bg);
-      color: var(--red);
-    }
-    .status.info {
-      display: block;
-      background: var(--blue-bg);
-      color: var(--blue);
-    }
-    .status.warn {
-      display: block;
-      background: var(--amber-bg);
-      color: var(--amber);
-    }
-    .actions {
-      margin-top: 18px;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .small-table-wrap {
-      width: 100%;
-      overflow: auto;
-      margin-top: 12px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-    }
-    .small-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      min-width: 760px;
-      background: white;
-    }
-    .small-table th, .small-table td {
-      border-bottom: 1px solid var(--line);
-      padding: 10px 8px;
-      text-align: left;
-      vertical-align: top;
-      white-space: nowrap;
-    }
-    .small-table th {
-      color: var(--muted);
-      font-weight: 900;
-      background: #F9FAFB;
-    }
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      padding: 4px 8px;
-      font-size: 12px;
-      font-weight: 800;
-    }
+    .status.ok { display: block; background: var(--green-bg); color: var(--green); }
+    .status.err { display: block; background: var(--red-bg); color: var(--red); }
+    .status.info { display: block; background: var(--blue-bg); color: var(--blue); }
+    .status.warn { display: block; background: var(--amber-bg); color: var(--amber); }
+    .small-table-wrap { width: 100%; overflow: auto; margin-top: 12px; border: 1px solid var(--line); border-radius: 16px; }
+    .small-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 780px; background: white; }
+    .small-table th, .small-table td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align: left; vertical-align: top; }
+    .small-table th { color: var(--muted); font-weight: 900; background: #F9FAFB; }
+    .pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 8px; font-size: 12px; font-weight: 800; }
     .pill.ok { background: var(--green-bg); color: var(--green); }
     .pill.err { background: var(--red-bg); color: var(--red); }
     .pill.warn { background: var(--amber-bg); color: var(--amber); }
-    .progress {
-      margin-top: 12px;
-      width: 100%;
-      height: 10px;
-      background: #E5E7EB;
-      border-radius: 999px;
-      overflow: hidden;
-      display: none;
-    }
-    .progress-inner {
-      height: 100%;
-      width: 0%;
-      background: var(--primary);
-      border-radius: 999px;
-      transition: width .2s ease;
-    }
     .hint-box {
       margin-top: 12px;
       padding: 14px 16px;
@@ -233,12 +162,9 @@
       font-size: 13px;
       line-height: 1.7;
     }
-    code {
-      background: #F3F4F6;
-      padding: 2px 5px;
-      border-radius: 6px;
-      font-size: 12px;
-    }
+    .progress { margin-top: 12px; width: 100%; height: 10px; background: #E5E7EB; border-radius: 999px; overflow: hidden; display: none; }
+    .progress-inner { height: 100%; width: 0%; background: var(--primary); border-radius: 999px; transition: width .2s ease; }
+    code { background: #F3F4F6; padding: 2px 5px; border-radius: 6px; font-size: 12px; }
     @media (max-width: 720px) {
       .page { padding: 22px 12px 40px; }
       .head, .card { border-radius: 22px; padding: 18px; }
@@ -250,9 +176,14 @@
 <body>
   <main class="page">
     <section class="head">
-      <h1>Star Reading 报告后台管理</h1>
+      <h1>学而思国际素养高端体系<br>信息查询平台后台</h1>
       <div class="sub">
-        支持单份新增，也支持“信息表 + 多个 PDF”批量上传。保存成功后，家长端刷新查询即可看到新增报告；旧报告不会被覆盖。
+        这里统一管理平台入口和各业务系统数据。平台入口上线/下线后，家长端刷新即可看到最新状态。
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="showPanel('platform')">平台入口管理</button>
+        <button class="tab" onclick="showPanel('star')">Star Reading 报告管理</button>
+        <button class="tab" onclick="showPanel('ticket')">家长会门票管理</button>
       </div>
     </section>
 
@@ -267,121 +198,157 @@
       <p class="muted">密码不会保存在页面里。请在 Netlify 环境变量中设置 <b>ADMIN_PASSWORD</b>。</p>
     </section>
 
-    <section class="card">
-      <h2>批量上传报告</h2>
-      <div class="hint-box">
-        推荐流程：上传一张 <b>CSV 信息表</b> + 选择多个单人 PDF 文件。CSV 每一行是一份报告，通过 <code>reportFileName</code> 与 PDF 文件名匹配。<br>
-        支持字段名：<code>Student ID</code> / <code>studentId</code>、<code>ChineseName</code> / <code>chineseName</code>、<code>Test Date</code> / <code>testDate</code>、<code>SS (Lexile)</code>、<code>Lexile Range</code>、<code>PR</code>、<code>GE</code>、<code>IRL</code>、<code>Test Duration</code>、<code>reportFileName</code> 等。
-      </div>
-
-      <div class="grid" style="margin-top:14px;">
-        <div>
-          <label for="bulkCsv">信息表 CSV *</label>
-          <input id="bulkCsv" type="file" accept=".csv,text/csv" />
-          <p class="muted">请把 Excel 另存为 CSV 后上传。CSV 推荐使用 UTF-8 编码。</p>
+    <section id="platformPanel" class="panel active">
+      <section class="card">
+        <h2>系统入口管理</h2>
+        <div class="hint-box">
+          这里控制家长端平台首页显示哪些入口。<br>
+          <b>online</b> = 已开放；<b>offline</b> = 即将开放 / 暂不开放。<br>
+          目前 Star Reading 已接入功能；家长会门票入口会在下一步继续开发。
         </div>
-        <div>
-          <label for="bulkPdfs">报告 PDF 文件 *</label>
-          <input id="bulkPdfs" type="file" accept="application/pdf,.pdf" multiple />
-          <p class="muted">选择多个已经拆分好的单人 PDF。文件名需与 CSV 的 reportFileName 一致。</p>
+        <div class="actions">
+          <button onclick="loadSystems()">刷新入口配置</button>
+          <button class="secondary" onclick="resetSystemForm()">新增入口</button>
         </div>
-      </div>
+        <div id="systemStatus" class="status"></div>
+        <div id="systemsTable"></div>
+      </section>
 
-      <div class="actions">
-        <button class="secondary" onclick="previewBulk()">预览匹配结果</button>
-        <button id="bulkUploadBtn" onclick="uploadBulk()" disabled>开始批量上传</button>
-        <span class="muted">建议每批上传 20-50 份，避免网络中断。</span>
-      </div>
-
-      <div id="bulkStatus" class="status"></div>
-      <div class="progress" id="bulkProgress"><div class="progress-inner" id="bulkProgressInner"></div></div>
-      <div id="bulkPreview"></div>
+      <section class="card">
+        <h2>编辑入口</h2>
+        <div class="grid">
+          <div>
+            <label for="systemId">入口 ID *</label>
+            <input id="systemId" placeholder="例如：parent-meeting-ticket" />
+          </div>
+          <div>
+            <label for="systemTitle">入口名称 *</label>
+            <input id="systemTitle" placeholder="例如：线下家长会门票获取" />
+          </div>
+          <div class="full">
+            <label for="systemDescription">入口说明</label>
+            <textarea id="systemDescription" placeholder="简要说明这个入口可以做什么"></textarea>
+          </div>
+          <div>
+            <label for="systemStatusSelect">状态</label>
+            <select id="systemStatusSelect">
+              <option value="online">online 已开放</option>
+              <option value="offline">offline 暂不开放</option>
+            </select>
+          </div>
+          <div>
+            <label for="systemActionText">按钮文字</label>
+            <input id="systemActionText" placeholder="例如：进入查询 / 即将开放" />
+          </div>
+          <div>
+            <label for="systemSortOrder">排序</label>
+            <input id="systemSortOrder" type="number" placeholder="数字越小越靠前" />
+          </div>
+        </div>
+        <div class="actions">
+          <button onclick="saveSystem()">保存入口</button>
+        </div>
+        <div id="saveSystemStatus" class="status"></div>
+      </section>
     </section>
 
-    <section class="card">
-      <h2>新增一份报告</h2>
-      <div class="grid">
-        <div>
-          <label for="studentId">学员编号 *</label>
-          <input id="studentId" placeholder="例如：241010088333" />
+    <section id="starPanel" class="panel">
+      <section class="card">
+        <h2>Star Reading 批量上传报告</h2>
+        <div class="hint-box">
+          推荐流程：上传一张 <b>CSV 信息表</b> + 选择多个单人 PDF 文件。CSV 每一行是一份报告，通过 <code>reportFileName</code> 与 PDF 文件名匹配。
         </div>
-        <div>
-          <label for="chineseName">孩子中文名 *</label>
-          <input id="chineseName" placeholder="例如：宫梓淇" />
-        </div>
-        <div>
-          <label for="studentNameEnglish">英文名 / 拼音名</label>
-          <input id="studentNameEnglish" placeholder="例如：GONG, ZIQI" />
-        </div>
-        <div>
-          <label for="className">班级</label>
-          <input id="className" placeholder="例如：Grade1 1X" />
-        </div>
-        <div>
-          <label for="grade">年级</label>
-          <input id="grade" placeholder="例如：Pre-K" />
-        </div>
-        <div>
-          <label for="testDate">测试日期 *</label>
-          <input id="testDate" type="date" />
-        </div>
-      </div>
 
-      <div class="grid3" style="margin-top:14px;">
-        <div><label for="lexileScore">当前 Lexile（蓝思值）</label><input id="lexileScore" placeholder="例如：320L" /></div>
-        <div><label for="lexileRange">Lexile 推荐区间</label><input id="lexileRange" placeholder="例如：220L - 370L" /></div>
-        <div><label for="pr">PR 百分位</label><input id="pr" placeholder="例如：96" /></div>
-        <div><label for="ge">GE</label><input id="ge" placeholder="例如：2.9" /></div>
-        <div><label for="irl">IRL</label><input id="irl" placeholder="例如：2.5" /></div>
-        <div><label for="testDuration">测试用时</label><input id="testDuration" placeholder="例如：28 mins and 5 secs" /></div>
-        <div><label for="benchmarkCategory">Benchmark Category</label><input id="benchmarkCategory" placeholder="例如：At/Above Benchmark" /></div>
-      </div>
-
-      <div class="grid3" style="margin-top:14px;">
-        <div><label for="literatureComprehension">文学文本理解</label><input id="literatureComprehension" placeholder="0-100" /></div>
-        <div><label for="literatureStructure">文学文本结构</label><input id="literatureStructure" placeholder="0-100" /></div>
-        <div><label for="informationalComprehension">信息类文本理解</label><input id="informationalComprehension" placeholder="0-100" /></div>
-        <div><label for="foundations">阅读基础</label><input id="foundations" placeholder="0-100" /></div>
-        <div><label for="vocabulary">词汇发展</label><input id="vocabulary" placeholder="0-100" /></div>
-      </div>
-
-      <div class="grid" style="margin-top:14px;">
-        <div class="full">
-          <label for="pdfFile">原始 PDF 报告 *</label>
-          <input id="pdfFile" type="file" accept="application/pdf" />
+        <div class="grid" style="margin-top:14px;">
+          <div>
+            <label for="bulkCsv">信息表 CSV *</label>
+            <input id="bulkCsv" type="file" accept=".csv,text/csv" />
+            <p class="muted">请把 Excel 另存为 CSV 后上传。CSV 推荐使用 UTF-8 编码。</p>
+          </div>
+          <div>
+            <label for="bulkPdfs">报告 PDF 文件 *</label>
+            <input id="bulkPdfs" type="file" accept="application/pdf,.pdf" multiple />
+            <p class="muted">选择多个已经拆分好的单人 PDF。文件名需与 CSV 的 reportFileName 一致。</p>
+          </div>
         </div>
-      </div>
 
-      <div class="actions">
-        <button onclick="submitReport()">保存报告</button>
-        <span class="muted">保存成功后，家长端刷新查询即可看到。</span>
-      </div>
-      <div id="saveStatus" class="status"></div>
+        <div class="actions">
+          <button class="secondary" onclick="previewBulk()">预览匹配结果</button>
+          <button id="bulkUploadBtn" onclick="uploadBulk()" disabled>开始批量上传</button>
+          <span class="muted">建议每批上传 20-50 份，避免网络中断。</span>
+        </div>
+
+        <div id="bulkStatus" class="status"></div>
+        <div class="progress" id="bulkProgress"><div class="progress-inner" id="bulkProgressInner"></div></div>
+        <div id="bulkPreview"></div>
+      </section>
+
+      <section class="card">
+        <h2>Star Reading 新增一份报告</h2>
+        <div class="grid">
+          <div><label for="studentId">学员编号 *</label><input id="studentId" placeholder="例如：241010088333" /></div>
+          <div><label for="chineseName">孩子中文名 *</label><input id="chineseName" placeholder="例如：宫梓淇" /></div>
+          <div><label for="studentNameEnglish">英文名 / 拼音名</label><input id="studentNameEnglish" placeholder="例如：GONG, ZIQI" /></div>
+          <div><label for="className">班级</label><input id="className" placeholder="例如：Grade1 1X" /></div>
+          <div><label for="grade">年级</label><input id="grade" placeholder="例如：Pre-K" /></div>
+          <div><label for="testDate">测试日期 *</label><input id="testDate" type="date" /></div>
+        </div>
+
+        <div class="grid3" style="margin-top:14px;">
+          <div><label for="lexileScore">当前 Lexile（蓝思值）</label><input id="lexileScore" placeholder="例如：320L" /></div>
+          <div><label for="lexileRange">Lexile 推荐区间</label><input id="lexileRange" placeholder="例如：220L - 370L" /></div>
+          <div><label for="pr">PR 百分位</label><input id="pr" placeholder="例如：96" /></div>
+          <div><label for="ge">GE</label><input id="ge" placeholder="例如：2.9" /></div>
+          <div><label for="irl">IRL</label><input id="irl" placeholder="例如：2.5" /></div>
+          <div><label for="testDuration">测试用时</label><input id="testDuration" placeholder="例如：28 mins and 5 secs" /></div>
+          <div><label for="benchmarkCategory">Benchmark Category</label><input id="benchmarkCategory" placeholder="例如：At/Above Benchmark" /></div>
+        </div>
+
+        <div class="grid3" style="margin-top:14px;">
+          <div><label for="literatureComprehension">文学文本理解</label><input id="literatureComprehension" placeholder="0-100" /></div>
+          <div><label for="literatureStructure">文学文本结构</label><input id="literatureStructure" placeholder="0-100" /></div>
+          <div><label for="informationalComprehension">信息类文本理解</label><input id="informationalComprehension" placeholder="0-100" /></div>
+          <div><label for="foundations">阅读基础</label><input id="foundations" placeholder="0-100" /></div>
+          <div><label for="vocabulary">词汇发展</label><input id="vocabulary" placeholder="0-100" /></div>
+        </div>
+
+        <div class="grid" style="margin-top:14px;">
+          <div class="full"><label for="pdfFile">原始 PDF 报告 *</label><input id="pdfFile" type="file" accept="application/pdf" /></div>
+        </div>
+
+        <div class="actions">
+          <button onclick="submitReport()">保存报告</button>
+          <span class="muted">保存成功后，家长端刷新查询即可看到。</span>
+        </div>
+        <div id="saveStatus" class="status"></div>
+      </section>
+
+      <section class="card">
+        <h2>Star Reading 快速检查</h2>
+        <div class="grid">
+          <div><label for="checkStudentId">学员编号</label><input id="checkStudentId" placeholder="输入学员编号" /></div>
+          <div><label for="checkChineseName">中文名</label><input id="checkChineseName" placeholder="输入中文名" /></div>
+        </div>
+        <div class="actions"><button onclick="checkReports()">查询该学员报告数</button></div>
+        <div id="checkStatus" class="status"></div>
+        <div id="checkTable"></div>
+      </section>
     </section>
 
-    <section class="card">
-      <h2>快速检查</h2>
-      <div class="grid">
-        <div>
-          <label for="checkStudentId">学员编号</label>
-          <input id="checkStudentId" placeholder="输入学员编号" />
+    <section id="ticketPanel" class="panel">
+      <section class="card">
+        <h2>线下家长会门票管理</h2>
+        <div class="hint-box">
+          这个模块下一步开发。预计支持：导入参会名单、生成门票二维码/入场码、家长查询并领取门票。
         </div>
-        <div>
-          <label for="checkChineseName">中文名</label>
-          <input id="checkChineseName" placeholder="输入中文名" />
-        </div>
-      </div>
-      <div class="actions">
-        <button onclick="checkReports()">查询该学员报告数</button>
-      </div>
-      <div id="checkStatus" class="status"></div>
-      <div id="checkTable"></div>
+      </section>
     </section>
   </main>
 
   <script>
     let bulkRows = [];
     let bulkFiles = new Map();
+    let systemsCache = [];
 
     function value(id) {
       return document.getElementById(id).value.trim();
@@ -393,14 +360,138 @@
       el.innerText = text;
     }
 
-    function normalizeKey(key) {
-      return String(key || "").trim().toLowerCase().replace(/[\s_\/\-\(\)（）]/g, "");
+    function showPanel(name) {
+      document.querySelectorAll(".tab").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("active"));
+      if (name === "platform") {
+        document.querySelectorAll(".tab")[0].classList.add("active");
+        document.getElementById("platformPanel").classList.add("active");
+        loadSystems();
+      }
+      if (name === "star") {
+        document.querySelectorAll(".tab")[1].classList.add("active");
+        document.getElementById("starPanel").classList.add("active");
+      }
+      if (name === "ticket") {
+        document.querySelectorAll(".tab")[2].classList.add("active");
+        document.getElementById("ticketPanel").classList.add("active");
+      }
     }
+
+    function authHeaders() {
+      const password = value("adminPassword");
+      return {
+        "Content-Type": "application/json",
+        "X-Admin-Password": password
+      };
+    }
+
+    async function loadSystems() {
+      try {
+        setStatus("systemStatus", "info", "正在读取入口配置...");
+        const res = await fetch(`/.netlify/functions/get-systems?t=${Date.now()}`, { cache: "no-store" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "读取失败");
+        systemsCache = data.systems || [];
+        renderSystemsTable();
+        setStatus("systemStatus", "ok", `已读取 ${systemsCache.length} 个系统入口。`);
+      } catch (err) {
+        setStatus("systemStatus", "err", err.message || "读取入口配置失败。");
+      }
+    }
+
+    function renderSystemsTable() {
+      const rows = systemsCache
+        .sort((a, b) => Number(a.sortOrder || 999) - Number(b.sortOrder || 999))
+        .map(s => `
+          <tr>
+            <td>${s.sortOrder || ""}</td>
+            <td>${s.id || ""}</td>
+            <td>${s.title || ""}</td>
+            <td><span class="pill ${s.status === "online" ? "ok" : "warn"}">${s.status}</span></td>
+            <td>${s.description || ""}</td>
+            <td><button class="secondary" onclick='editSystem(${JSON.stringify(s).replace(/'/g, "&#39;")})'>编辑</button></td>
+          </tr>
+        `).join("");
+
+      document.getElementById("systemsTable").innerHTML = `
+        <div class="small-table-wrap">
+          <table class="small-table">
+            <thead>
+              <tr>
+                <th>排序</th>
+                <th>ID</th>
+                <th>名称</th>
+                <th>状态</th>
+                <th>说明</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function editSystem(system) {
+      document.getElementById("systemId").value = system.id || "";
+      document.getElementById("systemTitle").value = system.title || "";
+      document.getElementById("systemDescription").value = system.description || "";
+      document.getElementById("systemStatusSelect").value = system.status || "offline";
+      document.getElementById("systemActionText").value = system.actionText || "";
+      document.getElementById("systemSortOrder").value = system.sortOrder || "";
+      document.getElementById("saveSystemStatus").className = "status";
+    }
+
+    function resetSystemForm() {
+      document.getElementById("systemId").value = "";
+      document.getElementById("systemTitle").value = "";
+      document.getElementById("systemDescription").value = "";
+      document.getElementById("systemStatusSelect").value = "offline";
+      document.getElementById("systemActionText").value = "即将开放";
+      document.getElementById("systemSortOrder").value = "";
+      document.getElementById("saveSystemStatus").className = "status";
+    }
+
+    async function saveSystem() {
+      const password = value("adminPassword");
+      if (!password) {
+        setStatus("saveSystemStatus", "err", "请先输入后台密码。");
+        return;
+      }
+      const system = {
+        id: value("systemId"),
+        title: value("systemTitle"),
+        description: value("systemDescription"),
+        status: document.getElementById("systemStatusSelect").value,
+        actionText: value("systemActionText"),
+        sortOrder: Number(value("systemSortOrder") || 999)
+      };
+      if (!system.id || !system.title) {
+        setStatus("saveSystemStatus", "err", "入口 ID 和入口名称为必填。");
+        return;
+      }
+      try {
+        setStatus("saveSystemStatus", "info", "正在保存入口配置...");
+        const res = await fetch("/.netlify/functions/admin-save-system", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify(system)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "保存失败");
+        setStatus("saveSystemStatus", "ok", "保存成功，家长端刷新后即可看到最新入口状态。");
+        await loadSystems();
+      } catch (err) {
+        setStatus("saveSystemStatus", "err", err.message || "保存失败。");
+      }
+    }
+
+    function normalizeKey(key) { return String(key || "").trim().toLowerCase().replace(/[\s_\/\-\(\)（）]/g, ""); }
 
     function getField(row, keys) {
       const normalized = {};
       for (const k of Object.keys(row)) normalized[normalizeKey(k)] = row[k];
-
       for (const key of keys) {
         const v = normalized[normalizeKey(key)];
         if (v !== undefined && String(v).trim() !== "") return String(v).trim();
@@ -419,9 +510,7 @@
         return `${y}-${String(us[1]).padStart(2, "0")}-${String(us[2]).padStart(2, "0")}`;
       }
       const d = new Date(s);
-      if (!Number.isNaN(d.getTime())) {
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-      }
+      if (!Number.isNaN(d.getTime())) return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
       return s;
     }
 
@@ -430,35 +519,23 @@
       let row = [];
       let value = "";
       let inQuotes = false;
-
       for (let i = 0; i < text.length; i++) {
         const char = text[i];
         const next = text[i + 1];
-
-        if (char === '"' && inQuotes && next === '"') {
-          value += '"';
-          i++;
-        } else if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === "," && !inQuotes) {
-          row.push(value);
-          value = "";
-        } else if ((char === "\n" || char === "\r") && !inQuotes) {
+        if (char === '"' && inQuotes && next === '"') { value += '"'; i++; }
+        else if (char === '"') { inQuotes = !inQuotes; }
+        else if (char === "," && !inQuotes) { row.push(value); value = ""; }
+        else if ((char === "\n" || char === "\r") && !inQuotes) {
           if (char === "\r" && next === "\n") i++;
-          row.push(value);
-          value = "";
+          row.push(value); value = "";
           if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
           row = [];
-        } else {
-          value += char;
-        }
+        } else { value += char; }
       }
       row.push(value);
       if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
-
       if (!rows.length) return [];
-
-      const headers = rows[0].map(h => String(h || "").trim());
+      const headers = rows[0].map(h => String(h || "").trim().replace(/^\uFEFF/, ""));
       return rows.slice(1).map(cells => {
         const obj = {};
         headers.forEach((h, idx) => obj[h] = cells[idx] === undefined ? "" : String(cells[idx]).trim());
@@ -478,10 +555,7 @@
     function fileToBase64(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => {
-          const result = String(reader.result || "");
-          resolve(result.split(",")[1] || "");
-        };
+        reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
@@ -514,18 +588,12 @@
 
     function buildFileMap(files) {
       const map = new Map();
-      Array.from(files || []).forEach(file => {
-        map.set(file.name, file);
-        map.set(file.name.toLowerCase(), file);
-      });
+      Array.from(files || []).forEach(file => { map.set(file.name, file); map.set(file.name.toLowerCase(), file); });
       return map;
     }
 
     function findFileForRecord(record) {
-      if (record.reportFileName) {
-        return bulkFiles.get(record.reportFileName) || bulkFiles.get(record.reportFileName.toLowerCase()) || null;
-      }
-
+      if (record.reportFileName) return bulkFiles.get(record.reportFileName) || bulkFiles.get(record.reportFileName.toLowerCase()) || null;
       const sid = record.studentId;
       const date = String(record.testDate || "").replace(/[^0-9]/g, "");
       for (const [name, file] of bulkFiles.entries()) {
@@ -543,92 +611,39 @@
         if (!r.testDate) missing.push("测试日期");
         const file = findFileForRecord(r);
         if (!file) missing.push("PDF");
-
         const ok = missing.length === 0;
-        return `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${r.studentId || "-"}</td>
-            <td>${r.chineseName || "-"}</td>
-            <td>${r.testDate || "-"}</td>
-            <td>${r.lexileScore || "-"}</td>
-            <td>${r.reportFileName || "自动匹配"}</td>
-            <td>${file ? file.name : "-"}</td>
-            <td>${ok ? '<span class="pill ok">可上传</span>' : `<span class="pill err">缺：${missing.join("、")}</span>`}</td>
-          </tr>
-        `;
+        return `<tr><td>${idx + 1}</td><td>${r.studentId || "-"}</td><td>${r.chineseName || "-"}</td><td>${r.testDate || "-"}</td><td>${r.lexileScore || "-"}</td><td>${r.reportFileName || "自动匹配"}</td><td>${file ? file.name : "-"}</td><td>${ok ? '<span class="pill ok">可上传</span>' : `<span class="pill err">缺：${missing.join("、")}</span>`}</td></tr>`;
       }).join("");
-
-      document.getElementById("bulkPreview").innerHTML = `
-        <div class="small-table-wrap">
-          <table class="small-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>学员编号</th>
-                <th>中文名</th>
-                <th>测试日期</th>
-                <th>Lexile</th>
-                <th>CSV PDF 文件名</th>
-                <th>匹配到的 PDF</th>
-                <th>状态</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      `;
+      document.getElementById("bulkPreview").innerHTML = `<div class="small-table-wrap"><table class="small-table"><thead><tr><th>#</th><th>学员编号</th><th>中文名</th><th>测试日期</th><th>Lexile</th><th>CSV PDF 文件名</th><th>匹配到的 PDF</th><th>状态</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }
 
     async function previewBulk() {
       const csvFile = document.getElementById("bulkCsv").files[0];
       const pdfFiles = document.getElementById("bulkPdfs").files;
-
-      if (!csvFile || !pdfFiles.length) {
-        setStatus("bulkStatus", "err", "请先选择 CSV 信息表和 PDF 文件。");
-        return;
-      }
-
+      if (!csvFile || !pdfFiles.length) { setStatus("bulkStatus", "err", "请先选择 CSV 信息表和 PDF 文件。"); return; }
       try {
         setStatus("bulkStatus", "info", "正在解析 CSV 和匹配 PDF...");
         bulkFiles = buildFileMap(pdfFiles);
         const text = await fileToText(csvFile);
         const rawRows = csvParse(text);
         bulkRows = rawRows.map(rowToRecord);
-
         const valid = bulkRows.filter(r => r.studentId && r.chineseName && r.testDate && findFileForRecord(r)).length;
         const invalid = bulkRows.length - valid;
-
         renderBulkPreview(bulkRows);
         document.getElementById("bulkUploadBtn").disabled = valid === 0;
-
-        if (invalid) {
-          setStatus("bulkStatus", "warn", `解析到 ${bulkRows.length} 行，其中 ${valid} 行可上传，${invalid} 行缺少必要信息或未匹配到 PDF。请检查下方预览表。`);
-        } else {
-          setStatus("bulkStatus", "ok", `解析到 ${bulkRows.length} 行，全部已匹配 PDF，可以开始批量上传。`);
-        }
-      } catch (err) {
-        setStatus("bulkStatus", "err", "解析失败。请确认 CSV 格式正确，并尽量使用 UTF-8 编码。");
-      }
+        if (invalid) setStatus("bulkStatus", "warn", `解析到 ${bulkRows.length} 行，其中 ${valid} 行可上传，${invalid} 行缺少必要信息或未匹配到 PDF。请检查下方预览表。`);
+        else setStatus("bulkStatus", "ok", `解析到 ${bulkRows.length} 行，全部已匹配 PDF，可以开始批量上传。`);
+      } catch (err) { setStatus("bulkStatus", "err", "解析失败。请确认 CSV 格式正确，并尽量使用 UTF-8 编码。"); }
     }
 
     async function uploadOneRecord(record, file, password) {
       const pdfBase64 = await fileToBase64(file);
-      const payload = {
-        ...record,
-        originalFileName: file.name,
-        pdfBase64
-      };
-
+      const payload = { ...record, originalFileName: file.name, pdfBase64 };
       const res = await fetch("/.netlify/functions/admin-add-report", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Admin-Password": password
-        },
+        headers: { "Content-Type": "application/json", "X-Admin-Password": password },
         body: JSON.stringify(payload)
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "保存失败");
       return data;
@@ -636,156 +651,63 @@
 
     async function uploadBulk() {
       const password = value("adminPassword");
-      if (!password) {
-        setStatus("bulkStatus", "err", "请先输入后台密码。");
-        return;
-      }
-      if (!bulkRows.length) {
-        setStatus("bulkStatus", "err", "请先点击“预览匹配结果”。");
-        return;
-      }
-
-      const candidates = bulkRows
-        .map((record, index) => ({ record, file: findFileForRecord(record), index }))
-        .filter(item => item.record.studentId && item.record.chineseName && item.record.testDate && item.file);
-
-      if (!candidates.length) {
-        setStatus("bulkStatus", "err", "没有可上传的有效记录。");
-        return;
-      }
-
+      if (!password) { setStatus("bulkStatus", "err", "请先输入后台密码。"); return; }
+      if (!bulkRows.length) { setStatus("bulkStatus", "err", "请先点击“预览匹配结果”。"); return; }
+      const candidates = bulkRows.map((record, index) => ({ record, file: findFileForRecord(record), index })).filter(item => item.record.studentId && item.record.chineseName && item.record.testDate && item.file);
+      if (!candidates.length) { setStatus("bulkStatus", "err", "没有可上传的有效记录。"); return; }
       const btn = document.getElementById("bulkUploadBtn");
       const progress = document.getElementById("bulkProgress");
       const inner = document.getElementById("bulkProgressInner");
-      btn.disabled = true;
-      progress.style.display = "block";
-      inner.style.width = "0%";
-
-      let ok = 0;
-      let fail = 0;
-      const errors = [];
-
+      btn.disabled = true; progress.style.display = "block"; inner.style.width = "0%";
+      let ok = 0, fail = 0; const errors = [];
       for (let i = 0; i < candidates.length; i++) {
         const { record, file, index } = candidates[i];
         setStatus("bulkStatus", "info", `正在上传第 ${i + 1} / ${candidates.length} 份：${record.chineseName}｜${record.testDate}`);
-        try {
-          await uploadOneRecord(record, file, password);
-          ok++;
-        } catch (err) {
-          fail++;
-          errors.push(`第 ${index + 1} 行 ${record.chineseName || record.studentId || ""}：${err.message || "上传失败"}`);
-        }
+        try { await uploadOneRecord(record, file, password); ok++; }
+        catch (err) { fail++; errors.push(`第 ${index + 1} 行 ${record.chineseName || record.studentId || ""}：${err.message || "上传失败"}`); }
         inner.style.width = `${Math.round(((i + 1) / candidates.length) * 100)}%`;
       }
-
       btn.disabled = false;
-
-      if (fail) {
-        setStatus("bulkStatus", "warn", `批量上传完成：成功 ${ok} 份，失败 ${fail} 份。\n${errors.slice(0, 8).join("\n")}${errors.length > 8 ? "\n..." : ""}`);
-      } else {
-        setStatus("bulkStatus", "ok", `批量上传完成：成功 ${ok} 份。家长端刷新查询即可看到新增报告。`);
-      }
+      if (fail) setStatus("bulkStatus", "warn", `批量上传完成：成功 ${ok} 份，失败 ${fail} 份。\n${errors.slice(0, 8).join("\n")}${errors.length > 8 ? "\n..." : ""}`);
+      else setStatus("bulkStatus", "ok", `批量上传完成：成功 ${ok} 份。家长端刷新查询即可看到新增报告。`);
     }
 
     async function submitReport() {
       const password = value("adminPassword");
       const file = document.getElementById("pdfFile").files[0];
-
-      if (!password) {
-        setStatus("saveStatus", "err", "请先输入后台密码。");
-        return;
-      }
-      if (!value("studentId") || !value("chineseName") || !value("testDate") || !file) {
-        setStatus("saveStatus", "err", "请至少填写学员编号、中文名、测试日期，并上传 PDF。");
-        return;
-      }
-
+      if (!password) { setStatus("saveStatus", "err", "请先输入后台密码。"); return; }
+      if (!value("studentId") || !value("chineseName") || !value("testDate") || !file) { setStatus("saveStatus", "err", "请至少填写学员编号、中文名、测试日期，并上传 PDF。"); return; }
       try {
         setStatus("saveStatus", "info", "正在上传并保存，请稍候...");
-
         const payload = {
-          studentId: value("studentId"),
-          chineseName: value("chineseName"),
-          studentNameEnglish: value("studentNameEnglish"),
-          className: value("className"),
-          grade: value("grade"),
-          testDate: value("testDate"),
-          lexileScore: value("lexileScore"),
-          lexileRange: value("lexileRange"),
-          pr: value("pr"),
-          ge: value("ge"),
-          irl: value("irl"),
-          testDuration: value("testDuration"),
-          benchmarkCategory: value("benchmarkCategory"),
-          literatureComprehension: value("literatureComprehension"),
-          literatureStructure: value("literatureStructure"),
-          informationalComprehension: value("informationalComprehension"),
-          foundations: value("foundations"),
-          vocabulary: value("vocabulary")
+          studentId: value("studentId"), chineseName: value("chineseName"), studentNameEnglish: value("studentNameEnglish"), className: value("className"), grade: value("grade"), testDate: value("testDate"),
+          lexileScore: value("lexileScore"), lexileRange: value("lexileRange"), pr: value("pr"), ge: value("ge"), irl: value("irl"), testDuration: value("testDuration"), benchmarkCategory: value("benchmarkCategory"),
+          literatureComprehension: value("literatureComprehension"), literatureStructure: value("literatureStructure"), informationalComprehension: value("informationalComprehension"), foundations: value("foundations"), vocabulary: value("vocabulary")
         };
-
         await uploadOneRecord(payload, file, password);
-
         setStatus("saveStatus", "ok", `保存成功：${payload.testDate}｜${payload.chineseName}｜${payload.studentId}`);
         document.getElementById("pdfFile").value = "";
-      } catch (err) {
-        setStatus("saveStatus", "err", err.message || "保存失败，请重试。");
-      }
+      } catch (err) { setStatus("saveStatus", "err", err.message || "保存失败，请重试。"); }
     }
 
     async function checkReports() {
       const id = value("checkStudentId");
       const name = value("checkChineseName");
-      if (!id || !name) {
-        setStatus("checkStatus", "err", "请输入学员编号和中文名。");
-        return;
-      }
-
+      if (!id || !name) { setStatus("checkStatus", "err", "请输入学员编号和中文名。"); return; }
       try {
         setStatus("checkStatus", "info", "正在查询...");
         const res = await fetch(`/.netlify/functions/search-reports?studentId=${encodeURIComponent(id)}&chineseName=${encodeURIComponent(name)}&t=${Date.now()}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "查询失败");
-
         const reports = data.reports || [];
         setStatus("checkStatus", "ok", `查询到 ${reports.length} 份报告。`);
-
         const table = document.getElementById("checkTable");
-        if (!reports.length) {
-          table.innerHTML = "";
-          return;
-        }
-
-        table.innerHTML = `
-          <div class="small-table-wrap">
-            <table class="small-table">
-              <thead>
-                <tr>
-                  <th>测试日期</th>
-                  <th>Lexile</th>
-                  <th>PR</th>
-                  <th>GE</th>
-                  <th>IRL</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${reports.map(r => `
-                  <tr>
-                    <td>${r.testDate || "-"}</td>
-                    <td>${r.lexileScore || "-"}</td>
-                    <td>${r.pr || "-"}</td>
-                    <td>${r.ge || "-"}</td>
-                    <td>${r.irl || "-"}</td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
-        `;
-      } catch (err) {
-        setStatus("checkStatus", "err", err.message || "查询失败。");
-      }
+        if (!reports.length) { table.innerHTML = ""; return; }
+        table.innerHTML = `<div class="small-table-wrap"><table class="small-table"><thead><tr><th>测试日期</th><th>Lexile</th><th>PR</th><th>GE</th><th>IRL</th></tr></thead><tbody>${reports.map(r => `<tr><td>${r.testDate || "-"}</td><td>${r.lexileScore || "-"}</td><td>${r.pr || "-"}</td><td>${r.ge || "-"}</td><td>${r.irl || "-"}</td></tr>`).join("")}</tbody></table></div>`;
+      } catch (err) { setStatus("checkStatus", "err", err.message || "查询失败。"); }
     }
+
+    loadSystems();
   </script>
 </body>
 </html>

@@ -79,3 +79,20 @@ V14 移动端修复：
 2. report-item 明确设置 height:auto，移动端自然撑开。
 3. 测评记录摘要改为 span 分段，在手机端纵向展示。
 4. 保留 V12 个性化建议、V13 手机端优化、后台批量上传等功能。
+
+
+V15 平台入口升级：
+1. 家长端从 Star Reading 单系统升级为“学而思国际素养高端体系信息查询平台”。
+2. 首页统一输入学员编号和中文名，验证通过后进入平台首页。
+3. 平台首页支持多个系统入口，目前 Star Reading 已开放，线下家长会门票为即将开放。
+4. Star Reading 查询系统完整保留，包括多报告、PDF 下载、个性化建议、移动端修复。
+5. 系统入口可在 index.html 的 SYSTEMS 配置里上线/下线。
+
+
+V16 后台平台化升级：
+1. admin.html 从 Star Reading 单后台升级为平台后台。
+2. 新增平台入口管理，可编辑入口名称、说明、状态、按钮文字、排序。
+3. 新增 get-systems 和 admin-save-system Functions，入口配置保存到 Netlify Blobs。
+4. 家长端 index.html 改为从 get-systems 动态读取入口配置。
+5. Star Reading 报告管理保留单份上传、批量上传和快速检查。
+6. 家长会门票管理先做占位模块，下一步开发。
