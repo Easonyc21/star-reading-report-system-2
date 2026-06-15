@@ -4,4 +4,4 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["data/seed-reports.json"]
+  included_files = ["data/seed-reports.json", "data/**"]
