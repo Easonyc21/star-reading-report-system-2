@@ -123,3 +123,9 @@ V21 Blobs 修复 + 门票 Logo：
 3. 新增 blobs-health 函数，用于检测 Blobs 写入环境。
 4. 门票入口卡片和门票模块顶部新增成长启航大会 Logo。
 5. 如果上传仍提示 Blobs 未配置，需要在 Netlify 环境变量添加 NETLIFY_AUTH_TOKEN。
+
+
+V22 构建修复：
+1. 修复 V21 中 blob-store.mjs 被误替换导致 Netlify build failed 的问题。
+2. 保留 V21 的门票入口 Logo 和 Blobs 兼容初始化。
+3. 如果上传时仍提示 Blobs 未配置，请添加 NETLIFY_AUTH_TOKEN 环境变量后重新部署。
