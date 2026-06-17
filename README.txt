@@ -129,3 +129,11 @@ V22 构建修复：
 1. 修复 V21 中 blob-store.mjs 被误替换导致 Netlify build failed 的问题。
 2. 保留 V21 的门票入口 Logo 和 Blobs 兼容初始化。
 3. 如果上传时仍提示 Blobs 未配置，请添加 NETLIFY_AUTH_TOKEN 环境变量后重新部署。
+
+
+V23 统一学员名单 + 门票按钮：
+1. 登录平台改为 verify-student，不再依赖 Star Reading 报告。
+2. 后台新增“学员名单管理”，支持单个新增和 CSV 批量导入。
+3. 没有 Star Reading 报告的学员，只要在名单里，也可以登录平台查询门票。
+4. 门票页面不再内嵌展示 PDF，只显示“查看 / 保存门票 PDF”按钮。
+5. 新增 student_roster_template.csv。

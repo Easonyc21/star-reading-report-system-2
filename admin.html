@@ -182,6 +182,7 @@
       </div>
       <div class="tabs">
         <button class="tab active" onclick="showPanel('platform')">平台入口管理</button>
+        <button class="tab" onclick="showPanel('students')">学员名单管理</button>
         <button class="tab" onclick="showPanel('star')">Star Reading 报告管理</button>
         <button class="tab" onclick="showPanel('ticket')">大会门票管理</button>
       </div>
@@ -249,6 +250,59 @@
           <button onclick="saveSystem()">保存入口</button>
         </div>
         <div id="saveSystemStatus" class="status"></div>
+      </section>
+    </section>
+
+
+    <section id="studentsPanel" class="panel">
+      <section class="card">
+        <h2>新增 / 更新学员</h2>
+        <div class="hint-box">
+          这里维护统一学员名单。添加后，即使该学员没有 Star Reading 报告，也可以用“学员编号 + 中文名”登录平台查询门票。
+        </div>
+        <div class="grid">
+          <div>
+            <label for="rosterStudentId">学员编号 *</label>
+            <input id="rosterStudentId" placeholder="例如：233010799667" />
+          </div>
+          <div>
+            <label for="rosterChineseName">孩子中文名 *</label>
+            <input id="rosterChineseName" placeholder="例如：张三" />
+          </div>
+          <div>
+            <label for="rosterEnglishName">英文名 / 拼音名</label>
+            <input id="rosterEnglishName" placeholder="可选" />
+          </div>
+          <div>
+            <label for="rosterClassName">班级</label>
+            <input id="rosterClassName" placeholder="例如：Grade2 2J" />
+          </div>
+          <div>
+            <label for="rosterGrade">年级</label>
+            <input id="rosterGrade" placeholder="例如：K / G1 / G2" />
+          </div>
+        </div>
+        <div class="actions">
+          <button onclick="saveStudent()">保存学员</button>
+        </div>
+        <div id="saveStudentStatus" class="status"></div>
+      </section>
+
+      <section class="card">
+        <h2>批量导入学员名单</h2>
+        <div class="hint-box">
+          上传 CSV，至少包含 <code>studentId</code> 和 <code>chineseName</code> 两列。也支持列名：<code>学员编号</code>、<code>中文名</code>、<code>班级</code>、<code>年级</code>。
+        </div>
+        <div class="grid">
+          <div class="full">
+            <label for="studentsCsv">学员名单 CSV *</label>
+            <input id="studentsCsv" type="file" accept=".csv,text/csv" />
+          </div>
+        </div>
+        <div class="actions">
+          <button onclick="uploadStudentsCsv()">导入学员名单</button>
+        </div>
+        <div id="studentsCsvStatus" class="status"></div>
       </section>
     </section>
 
@@ -413,206 +467,31 @@
     function showPanel(name) {
       document.querySelectorAll(".tab").forEach(btn => btn.classList.remove("active"));
       document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("active"));
-      if (name === "platform") {
-        document.querySelectorAll(".tab")[0].classList.add("active");
-        document.getElementById("platformPanel").classList.add("active");
-    
-    let ticketFiles = [];
 
-    function getStudentIdFromTicketFile(file) {
-      const name = String(file.name || "").replace(/\.[^.]+$/, "");
-      const match = name.match(/\d{6,}/);
-      return match ? match[0] : "";
-    }
+      const tabMap = {
+        platform: 0,
+        students: 1,
+        star: 2,
+        ticket: 3
+      };
 
-    function renderTicketPreview(files) {
-      const rows = Array.from(files).map((file, idx) => {
-        const sid = getStudentIdFromTicketFile(file);
-        return `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${file.name}</td>
-            <td>${Math.round(file.size / 1024)} KB</td>
-            <td>${sid || "-"}</td>
-            <td>${sid ? '<span class="pill ok">可上传</span>' : '<span class="pill err">无法识别学员编号</span>'}</td>
-          </tr>
-        `;
-      }).join("");
+      const panels = {
+        platform: "platformPanel",
+        students: "studentsPanel",
+        star: "starPanel",
+        ticket: "ticketPanel"
+      };
 
-      document.getElementById("ticketPreview").innerHTML = `
-        <div class="small-table-wrap">
-          <table class="small-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>文件名</th>
-                <th>大小</th>
-                <th>识别到的学员编号</th>
-                <th>状态</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    function previewTickets() {
-      const files = document.getElementById("ticketPdfs").files;
-      if (!files.length) {
-        setStatus("ticketStatus", "err", "请先选择门票 PDF 文件。");
-        return;
+      const tabIndex = tabMap[name];
+      if (tabIndex !== undefined && document.querySelectorAll(".tab")[tabIndex]) {
+        document.querySelectorAll(".tab")[tabIndex].classList.add("active");
       }
 
-      ticketFiles = Array.from(files);
-      const valid = ticketFiles.filter(file => getStudentIdFromTicketFile(file)).length;
-      const invalid = ticketFiles.length - valid;
-
-      renderTicketPreview(ticketFiles);
-      document.getElementById("ticketUploadBtn").disabled = valid === 0;
-
-      if (invalid) {
-        setStatus("ticketStatus", "warn", `已选择 ${ticketFiles.length} 份 PDF，其中 ${valid} 份可上传，${invalid} 份无法从文件名识别学员编号。`);
-      } else {
-        setStatus("ticketStatus", "ok", `已选择 ${ticketFiles.length} 份 PDF，全部可上传。`);
-      }
-    }
-
-    async function uploadTicketFile(file, studentId, password) {
-      const pdfBase64 = await fileToBase64(file);
-      const res = await fetch("/.netlify/functions/admin-add-ticket", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Admin-Password": password
-        },
-        body: JSON.stringify({
-          studentId,
-          originalFileName: file.name,
-          pdfBase64
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        const detail = data.detail ? `\n详细信息：${data.detail}` : "";
-        throw new Error((data.error || "上传失败") + detail);
+      if (panels[name]) {
+        document.getElementById(panels[name]).classList.add("active");
       }
 
-      return data;
-    }
-
-    async function uploadTickets() {
-      const password = value("adminPassword");
-      if (!password) {
-        setStatus("ticketStatus", "err", "请先输入后台密码。");
-        return;
-      }
-      if (!ticketFiles.length) {
-        setStatus("ticketStatus", "err", "请先点击“预览门票文件”。");
-        return;
-      }
-
-      const candidates = ticketFiles
-        .map(file => ({ file, studentId: getStudentIdFromTicketFile(file) }))
-        .filter(item => item.studentId);
-
-      if (!candidates.length) {
-        setStatus("ticketStatus", "err", "没有可上传的有效门票。");
-        return;
-      }
-
-      const btn = document.getElementById("ticketUploadBtn");
-      const progress = document.getElementById("ticketProgress");
-      const inner = document.getElementById("ticketProgressInner");
-      btn.disabled = true;
-      progress.style.display = "block";
-      inner.style.width = "0%";
-
-      let ok = 0;
-      let fail = 0;
-      const errors = [];
-
-      for (let i = 0; i < candidates.length; i++) {
-        const { file, studentId } = candidates[i];
-        setStatus("ticketStatus", "info", `正在上传第 ${i + 1} / ${candidates.length} 份：${studentId}`);
-        try {
-          await uploadTicketFile(file, studentId, password);
-          ok++;
-        } catch (err) {
-          fail++;
-          errors.push(`${file.name}：${err.message || "上传失败"}`);
-        }
-        inner.style.width = `${Math.round(((i + 1) / candidates.length) * 100)}%`;
-      }
-
-      btn.disabled = false;
-      if (fail) {
-        setStatus("ticketStatus", "warn", `门票上传完成：成功 ${ok} 份，失败 ${fail} 份。\n${errors.slice(0, 8).join("\n")}${errors.length > 8 ? "\n..." : ""}`);
-      } else {
-        setStatus("ticketStatus", "ok", `门票上传完成：成功 ${ok} 份。确认全部准备好后，可到“平台入口管理”把门票入口改为 online。`);
-      }
-    }
-
-    async function uploadSingleTicket() {
-      const password = value("adminPassword");
-      const studentId = value("singleTicketStudentId");
-      const file = document.getElementById("singleTicketPdf").files[0];
-
-      if (!password) {
-        setStatus("singleTicketStatus", "err", "请先输入后台密码。");
-        return;
-      }
-      if (!studentId || !file) {
-        setStatus("singleTicketStatus", "err", "请填写学员编号并选择门票 PDF。");
-        return;
-      }
-
-      try {
-        setStatus("singleTicketStatus", "info", "正在上传门票...");
-        await uploadTicketFile(file, studentId, password);
-        setStatus("singleTicketStatus", "ok", `保存成功：${studentId}`);
-        document.getElementById("singleTicketPdf").value = "";
-      } catch (err) {
-        setStatus("singleTicketStatus", "err", err.message || "上传失败。");
-      }
-    }
-
-    async function checkTicket() {
-      const studentId = value("checkTicketStudentId");
-      if (!studentId) {
-        setStatus("checkTicketStatus", "err", "请输入学员编号。");
-        return;
-      }
-
-      try {
-        setStatus("checkTicketStatus", "info", "正在查询门票...");
-        const res = await fetch(`/.netlify/functions/search-ticket?studentId=${encodeURIComponent(studentId)}&t=${Date.now()}`, { cache: "no-store" });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "查询失败");
-
-        if (!data.ticket) {
-          setStatus("checkTicketStatus", "warn", "未查询到该学员门票。");
-          return;
-        }
-
-        setStatus("checkTicketStatus", "ok", `已查询到门票：${data.ticket.studentId}\n${data.ticket.ticketUrl}`);
-      } catch (err) {
-        setStatus("checkTicketStatus", "err", err.message || "查询失败。");
-      }
-    }
-
-
-    loadSystems();
-      }
-      if (name === "star") {
-        document.querySelectorAll(".tab")[1].classList.add("active");
-        document.getElementById("starPanel").classList.add("active");
-      }
-      if (name === "ticket") {
-        document.querySelectorAll(".tab")[2].classList.add("active");
-        document.getElementById("ticketPanel").classList.add("active");
-      }
+      if (name === "platform") loadSystems();
     }
 
     function authHeaders() {
@@ -942,6 +821,91 @@
         if (!reports.length) { table.innerHTML = ""; return; }
         table.innerHTML = `<div class="small-table-wrap"><table class="small-table"><thead><tr><th>测试日期</th><th>Lexile</th><th>PR</th><th>GE</th><th>IRL</th></tr></thead><tbody>${reports.map(r => `<tr><td>${r.testDate || "-"}</td><td>${r.lexileScore || "-"}</td><td>${r.pr || "-"}</td><td>${r.ge || "-"}</td><td>${r.irl || "-"}</td></tr>`).join("")}</tbody></table></div>`;
       } catch (err) { setStatus("checkStatus", "err", err.message || "查询失败。"); }
+    }
+
+
+
+    function rowToStudent(row) {
+      return {
+        studentId: getField(row, ["studentId", "Student ID", "学员编号"]),
+        chineseName: getField(row, ["chineseName", "ChineseName", "中文名", "孩子中文名"]),
+        studentNameEnglish: getField(row, ["studentNameEnglish", "Student", "英文名", "拼音名"]),
+        className: getField(row, ["className", "Class/Group", "班级"]),
+        grade: getField(row, ["grade", "Grade", "年级"])
+      };
+    }
+
+    async function saveStudent() {
+      const password = value("adminPassword");
+      if (!password) {
+        setStatus("saveStudentStatus", "err", "请先输入后台密码。");
+        return;
+      }
+
+      const payload = {
+        studentId: value("rosterStudentId"),
+        chineseName: value("rosterChineseName"),
+        studentNameEnglish: value("rosterEnglishName"),
+        className: value("rosterClassName"),
+        grade: value("rosterGrade")
+      };
+
+      if (!payload.studentId || !payload.chineseName) {
+        setStatus("saveStudentStatus", "err", "学员编号和中文名为必填。");
+        return;
+      }
+
+      try {
+        setStatus("saveStudentStatus", "info", "正在保存学员...");
+        const res = await fetch("/.netlify/functions/admin-save-student", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "保存失败");
+        setStatus("saveStudentStatus", "ok", `保存成功：${payload.studentId}｜${payload.chineseName}`);
+      } catch (err) {
+        setStatus("saveStudentStatus", "err", err.message || "保存失败。");
+      }
+    }
+
+    async function uploadStudentsCsv() {
+      const password = value("adminPassword");
+      const file = document.getElementById("studentsCsv").files[0];
+
+      if (!password) {
+        setStatus("studentsCsvStatus", "err", "请先输入后台密码。");
+        return;
+      }
+      if (!file) {
+        setStatus("studentsCsvStatus", "err", "请先选择 CSV 文件。");
+        return;
+      }
+
+      try {
+        setStatus("studentsCsvStatus", "info", "正在解析并导入学员名单...");
+        const text = await fileToText(file);
+        const rows = csvParse(text);
+        const students = rows.map(rowToStudent).filter(s => s.studentId && s.chineseName);
+
+        if (!students.length) {
+          setStatus("studentsCsvStatus", "err", "没有识别到有效学员。请确认 CSV 包含 studentId 和 chineseName。");
+          return;
+        }
+
+        const res = await fetch("/.netlify/functions/admin-bulk-students", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({ students })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "导入失败");
+
+        setStatus("studentsCsvStatus", data.failed ? "warn" : "ok", `导入完成：成功 ${data.saved} 人，失败 ${data.failed} 人。${data.errors && data.errors.length ? "\\n" + data.errors.slice(0, 8).join("\\n") : ""}`);
+      } catch (err) {
+        setStatus("studentsCsvStatus", "err", err.message || "导入失败。");
+      }
     }
 
 

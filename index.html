@@ -1104,14 +1104,10 @@
           <p id="ticketIntro">正在读取门票信息，请稍候...</p>
 
           <div class="ticket-notice">
-            请家长查看门票后截图保存，到场后按门票上的座位号就座。
+            请点击下方按钮查看门票 PDF，并截图保存；到场后按门票上的座位号就座。
           </div>
 
           <div id="ticketEmpty" class="ticket-empty"></div>
-
-          <div id="ticketViewer" class="ticket-viewer" style="display:none;">
-            <iframe id="ticketFrame" title="成长启航大会门票"></iframe>
-          </div>
 
           <div id="ticketActions" class="ticket-actions" style="display:none;">
             <a id="ticketPdfLink" class="pdf-btn" href="#" target="_blank" rel="noopener">打开 / 保存门票 PDF</a>
@@ -1383,15 +1379,13 @@
         notFound.style.color = "#0F36B8";
         notFound.innerText = "正在验证身份，请稍候...";
 
-        const url = `/.netlify/functions/search-reports?studentId=${encodeURIComponent(rawId)}&chineseName=${encodeURIComponent(rawName)}&t=${Date.now()}`;
+        const url = `/.netlify/functions/verify-student?studentId=${encodeURIComponent(rawId)}&chineseName=${encodeURIComponent(rawName)}&t=${Date.now()}`;
         const res = await fetch(url, { cache: "no-store" });
         const data = await res.json();
 
         if (!res.ok) throw new Error(data.error || "验证失败");
 
-        currentReports = (data.reports || []).sort((a, b) => dateValue(b.testDate) - dateValue(a.testDate));
-
-        if (!currentReports.length) {
+        if (!data.ok || !data.student) {
           notFound.style.display = "block";
           notFound.style.background = "";
           notFound.style.borderColor = "";
@@ -1400,7 +1394,8 @@
           return;
         }
 
-        const first = currentReports[0];
+        currentReports = [];
+        const first = data.student;
         currentUser = {
           studentId: first.studentId,
           chineseName: first.chineseName,
@@ -1457,7 +1452,7 @@
         document.getElementById("moduleBarSub").innerText = "查看测评记录、阅读能力解读及原始报告 PDF";
         document.getElementById("starModule").style.display = "block";
         document.getElementById("ticketModule").style.display = "none";
-        renderStarReading();
+        loadAndRenderStarReading();
       }
 
       if (id === "parent-meeting-ticket") {
@@ -1486,16 +1481,12 @@
 
       const intro = document.getElementById("ticketIntro");
       const empty = document.getElementById("ticketEmpty");
-      const viewer = document.getElementById("ticketViewer");
-      const frame = document.getElementById("ticketFrame");
       const actions = document.getElementById("ticketActions");
       const link = document.getElementById("ticketPdfLink");
 
       intro.innerText = `正在读取 ${currentUser.chineseName || ""} 的成长启航大会门票...`;
       empty.style.display = "none";
-      viewer.style.display = "none";
       actions.style.display = "none";
-      frame.removeAttribute("src");
       link.href = "#";
 
       try {
@@ -1512,10 +1503,8 @@
           return;
         }
 
-        intro.innerText = `${currentUser.chineseName || "学员"} 的成长启航大会门票如下。`;
+        intro.innerText = `${currentUser.chineseName || "学员"} 的成长启航大会门票已生成。请点击下方按钮查看，并截图保存。`;
         link.href = data.ticket.ticketUrl;
-        frame.src = data.ticket.ticketUrl;
-        viewer.style.display = "block";
         actions.style.display = "flex";
       } catch (err) {
         intro.innerText = "门票查询服务暂时不可用。";
@@ -1597,12 +1586,39 @@
       renderReportList();
     }
 
-    function renderStarReading() {
-      if (!currentReports.length || !currentUser) return;
+    async function loadAndRenderStarReading() {
+      if (!currentUser) return;
 
-      const first = currentReports[0];
+      try {
+        const url = `/.netlify/functions/search-reports?studentId=${encodeURIComponent(currentUser.studentId)}&chineseName=${encodeURIComponent(currentUser.chineseName)}&t=${Date.now()}`;
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+
+        currentReports = res.ok ? (data.reports || []).sort((a, b) => dateValue(b.testDate) - dateValue(a.testDate)) : [];
+        renderStarReading();
+      } catch (err) {
+        currentReports = [];
+        renderStarReading();
+      }
+    }
+
+    function renderStarReading() {
+      if (!currentUser) return;
 
       document.getElementById("result").style.display = "block";
+
+      if (!currentReports.length) {
+        setText("name", `${currentUser.chineseName}${currentUser.studentNameEnglish ? " / " + currentUser.studentNameEnglish : ""}`);
+        document.getElementById("meta").innerHTML =
+          `学员编号：${currentUser.studentId}<br>班级：${currentUser.className || "-"}｜年级：${currentUser.grade || "-"}｜暂无 Star Reading 测评报告`;
+        setText("testDurationTop", "-");
+        document.getElementById("reportCountText").innerText = "暂未查询到该学员的 Star Reading 测评报告。";
+        document.getElementById("reportList").innerHTML = "";
+        document.getElementById("detailWrap").style.display = "none";
+        return;
+      }
+
+      const first = currentReports[0];
 
       setText("name", `${first.chineseName}${first.studentNameEnglish ? " / " + first.studentNameEnglish : ""}`);
       document.getElementById("meta").innerHTML =
