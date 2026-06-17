@@ -645,11 +645,7 @@
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      if (!res.ok) {
-        const detail = data.detail ? `\n详细信息：${data.detail}` : "";
-        const debug = data.debug ? `\n调试信息：${JSON.stringify(data.debug)}` : "";
-        throw new Error((data.error || "保存失败") + detail + debug);
-      }
+      if (!res.ok) throw new Error(data.error || "保存失败");
       return data;
     }
 

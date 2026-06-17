@@ -1,44 +1,18 @@
 import { getStore } from "@netlify/blobs";
-
-function json(statusCode, body) {
-  return {
-    statusCode,
-    headers: { "Content-Type": "application/json; charset=utf-8" },
-    body: JSON.stringify(body)
-  };
-}
-
+function json(statusCode, body) { return { statusCode, headers: {"Content-Type":"application/json; charset=utf-8"}, body: JSON.stringify(body) }; }
 export async function handler(event) {
   try {
     const expectedPassword = process.env.ADMIN_PASSWORD;
     const providedPassword = event.headers["x-admin-password"] || event.headers["X-Admin-Password"];
-
-    if (!expectedPassword) {
-      return json(500, { ok: false, error: "ADMIN_PASSWORD 未配置" });
-    }
-
-    if (providedPassword !== expectedPassword) {
-      return json(401, { ok: false, error: "后台密码错误" });
-    }
-
+    if (!expectedPassword) return json(500, { ok: false, error: "ADMIN_PASSWORD 未配置" });
+    if (providedPassword !== expectedPassword) return json(401, { ok: false, error: "后台密码错误" });
     const store = getStore("star-reading-records");
     const key = "health/admin-write-test.json";
     const data = { ok: true, time: new Date().toISOString() };
-
     await store.setJSON(key, data);
     const readBack = await store.get(key, { type: "json" });
-
-    return json(200, {
-      ok: true,
-      adminPasswordConfigured: true,
-      blobsWriteOk: !!readBack,
-      readBack
-    });
+    return json(200, { ok: true, adminPasswordConfigured: true, blobsWriteOk: !!readBack, readBack });
   } catch (err) {
-    return json(500, {
-      ok: false,
-      error: String(err && err.message ? err.message : err),
-      stack: String(err && err.stack ? err.stack : "")
-    });
+    return json(500, { ok: false, error: String(err && err.message ? err.message : err), stack: String(err && err.stack ? err.stack : "") });
   }
 }
