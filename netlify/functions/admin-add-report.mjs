@@ -14,53 +14,108 @@ function makeRecordId(studentId, testDate) {
   return `${clean(studentId)}_${slugDate(testDate)}_${random}`;
 }
 
+function json(statusCode, body) {
+  return {
+    statusCode,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+    body: JSON.stringify(body)
+  };
+}
+
 export async function handler(event) {
   try {
     if (event.httpMethod !== "POST") {
-      return {
-        statusCode: 405,
-        headers: { "Content-Type": "application/json; charset=utf-8" },
-        body: JSON.stringify({ error: "Method not allowed" })
-      };
+      return json(405, { error: "Method not allowed" });
     }
 
     const expectedPassword = process.env.ADMIN_PASSWORD;
     const providedPassword = event.headers["x-admin-password"] || event.headers["X-Admin-Password"];
 
-    if (!expectedPassword || providedPassword !== expectedPassword) {
-      return {
-        statusCode: 401,
-        headers: { "Content-Type": "application/json; charset=utf-8" },
-        body: JSON.stringify({ error: "后台密码错误，或未配置 ADMIN_PASSWORD。" })
-      };
+    if (!expectedPassword) {
+      return json(500, {
+        error: "Netlify 环境变量 ADMIN_PASSWORD 未配置。",
+        hint: "请到 Netlify → Project configuration → Environment variables 添加 ADMIN_PASSWORD，然后重新部署。"
+      });
     }
 
-    const payload = JSON.parse(event.body || "{}");
+    if (providedPassword !== expectedPassword) {
+      return json(401, { error: "后台密码错误。" });
+    }
+
+    let payload;
+    try {
+      payload = JSON.parse(event.body || "{}");
+    } catch (err) {
+      return json(400, {
+        error: "请求 JSON 解析失败。",
+        detail: String(err && err.message ? err.message : err)
+      });
+    }
 
     const required = ["studentId", "chineseName", "testDate", "pdfBase64"];
     for (const key of required) {
       if (!clean(payload[key])) {
-        return {
-          statusCode: 400,
-          headers: { "Content-Type": "application/json; charset=utf-8" },
-          body: JSON.stringify({ error: `缺少必填字段：${key}` })
-        };
+        return json(400, { error: `缺少必填字段：${key}` });
       }
+    }
+
+    const pdfBase64 = clean(payload.pdfBase64);
+    if (pdfBase64.length < 100) {
+      return json(400, {
+        error: "PDF 内容为空或读取失败。",
+        detail: `pdfBase64 length = ${pdfBase64.length}`
+      });
+    }
+
+    let pdfBuffer;
+    try {
+      pdfBuffer = Buffer.from(pdfBase64, "base64");
+    } catch (err) {
+      return json(400, {
+        error: "PDF base64 解码失败。",
+        detail: String(err && err.message ? err.message : err)
+      });
+    }
+
+    if (!pdfBuffer || pdfBuffer.length < 100) {
+      return json(400, {
+        error: "PDF 解码后为空。",
+        detail: `pdfBuffer length = ${pdfBuffer ? pdfBuffer.length : 0}`
+      });
     }
 
     const recordId = makeRecordId(payload.studentId, payload.testDate);
     const pdfKey = `pdf/${recordId}.pdf`;
     const recordKey = `records/${recordId}.json`;
 
-    const store = getStore("star-reading-records");
+    let store;
+    try {
+      store = getStore("star-reading-records");
+    } catch (err) {
+      return json(500, {
+        error: "Netlify Blobs 初始化失败。",
+        detail: String(err && err.message ? err.message : err)
+      });
+    }
 
-    const pdfBuffer = Buffer.from(payload.pdfBase64, "base64");
-    await store.set(pdfKey, pdfBuffer, {
-      metadata: {
-        contentType: "application/pdf",
-        originalFileName: clean(payload.originalFileName)
-      }
-    });
+    try {
+      await store.set(pdfKey, pdfBuffer, {
+        metadata: {
+          contentType: "application/pdf",
+          originalFileName: clean(payload.originalFileName)
+        }
+      });
+    } catch (err) {
+      return json(500, {
+        error: "PDF 保存到 Netlify Blobs 失败。",
+        detail: String(err && err.message ? err.message : err),
+        debug: {
+          pdfKey,
+          pdfBytes: pdfBuffer.length,
+          originalFileName: clean(payload.originalFileName)
+        }
+      });
+    }
 
     const record = {
       recordId,
@@ -84,21 +139,34 @@ export async function handler(event) {
       vocabulary: clean(payload.vocabulary),
       reportUrl: `/.netlify/functions/get-report-pdf?key=${encodeURIComponent(pdfKey)}`,
       source: "admin",
+      originalFileName: clean(payload.originalFileName),
       createdAt: new Date().toISOString()
     };
 
-    await store.setJSON(recordKey, record);
+    try {
+      await store.setJSON(recordKey, record);
+    } catch (err) {
+      return json(500, {
+        error: "报告数据保存到 Netlify Blobs 失败。",
+        detail: String(err && err.message ? err.message : err),
+        debug: { recordKey, recordId }
+      });
+    }
 
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json; charset=utf-8" },
-      body: JSON.stringify({ ok: true, record })
-    };
+    return json(200, {
+      ok: true,
+      record,
+      debug: {
+        pdfBytes: pdfBuffer.length,
+        pdfKey,
+        recordKey
+      }
+    });
   } catch (err) {
-    return {
-      statusCode: 500,
-      headers: { "Content-Type": "application/json; charset=utf-8" },
-      body: JSON.stringify({ error: "保存失败，请检查 PDF 大小、网络状态或 Netlify 配置。" })
-    };
+    return json(500, {
+      error: "未知错误。",
+      detail: String(err && err.message ? err.message : err),
+      stack: String(err && err.stack ? err.stack : "")
+    });
   }
 }
