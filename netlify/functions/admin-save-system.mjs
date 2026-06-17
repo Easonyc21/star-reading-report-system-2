@@ -1,4 +1,4 @@
-import { getStore } from "@netlify/blobs";
+import { getBlobStore } from "./blob-store.mjs";
 import { defaultSystems } from "./default-systems.mjs";
 function clean(value) { return String(value || "").trim(); }
 export async function handler(event) {
@@ -10,7 +10,7 @@ export async function handler(event) {
     const payload = JSON.parse(event.body || "{}");
     const system = { id: clean(payload.id), title: clean(payload.title), description: clean(payload.description), status: clean(payload.status) === "online" ? "online" : "offline", actionText: clean(payload.actionText) || (clean(payload.status) === "online" ? "进入查询" : "即将开放"), sortOrder: Number(payload.sortOrder || 999) };
     if (!system.id || !system.title) return { statusCode: 400, headers: {"Content-Type":"application/json; charset=utf-8"}, body: JSON.stringify({ error: "入口 ID 和入口名称不能为空。" }) };
-    const store = getStore("platform-config");
+    const store = getBlobStore("platform-config");
     const saved = await store.get("systems.json", { type: "json" });
     const systems = Array.isArray(saved) && saved.length ? saved : [...defaultSystems];
     const index = systems.findIndex((item) => item.id === system.id);

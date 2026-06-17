@@ -1,4 +1,4 @@
-import { getStore } from "@netlify/blobs";
+import { getBlobStore } from "./blob-store.mjs";
 import crypto from "crypto";
 function clean(value) { return String(value || "").trim(); }
 function slugDate(value) { return clean(value).replace(/[^0-9]/g, "") || "unknown-date"; }
@@ -20,7 +20,7 @@ export async function handler(event) {
     const recordId = makeRecordId(payload.studentId, payload.testDate);
     const pdfKey = `pdf/${recordId}.pdf`;
     const recordKey = `records/${recordId}.json`;
-    const store = getStore("star-reading-records");
+    const store = getBlobStore("star-reading-records");
     try {
       await store.set(pdfKey, pdfBuffer, { metadata: { contentType: "application/pdf", originalFileName: clean(payload.originalFileName) } });
     } catch (err) { return json(500, { error: "PDF 保存到 Netlify Blobs 失败。", detail: String(err && err.message ? err.message : err), debug: { pdfKey, pdfBytes: pdfBuffer.length } }); }

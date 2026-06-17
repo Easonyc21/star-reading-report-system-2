@@ -1,4 +1,4 @@
-import { getStore } from "@netlify/blobs";
+import { getBlobStore } from "./blob-store.mjs";
 import { seedReports } from "./seed-reports.mjs";
 
 function normalize(text) {
@@ -10,7 +10,7 @@ function dateValue(value) {
 }
 async function getDynamicReports() {
   try {
-    const store = getStore("star-reading-records");
+    const store = getBlobStore("star-reading-records");
     const reports = [];
     const list = await store.list({ prefix: "records/" });
     for (const blob of list.blobs || []) {

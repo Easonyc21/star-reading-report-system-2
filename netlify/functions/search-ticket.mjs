@@ -1,4 +1,4 @@
-import { getStore } from "@netlify/blobs";
+import { getBlobStore } from "./blob-store.mjs";
 
 function clean(value) {
   return String(value || "").trim();
@@ -16,7 +16,7 @@ export async function handler(event) {
       };
     }
 
-    const store = getStore("platform-tickets");
+    const store = getBlobStore("platform-tickets");
     const record = await store.get(`records/${studentId}.json`, { type: "json" });
 
     return {

@@ -115,3 +115,11 @@ V20 成长启航大会门票系统：
 4. 后台新增门票批量上传、单份上传/覆盖、门票快速检查。
 5. 门票 PDF 文件名建议为学员编号，如 212010952764.pdf。
 6. 新增 Functions：admin-add-ticket、search-ticket、get-ticket-pdf。
+
+
+V21 Blobs 修复 + 门票 Logo：
+1. 新增 blob-store.mjs，所有 Netlify Blobs 存取统一通过兼容 helper。
+2. helper 支持读取 SITE_ID/NETLIFY_SITE_ID 和 NETLIFY_AUTH_TOKEN/NETLIFY_API_TOKEN/NETLIFY_BLOBS_TOKEN。
+3. 新增 blobs-health 函数，用于检测 Blobs 写入环境。
+4. 门票入口卡片和门票模块顶部新增成长启航大会 Logo。
+5. 如果上传仍提示 Blobs 未配置，需要在 Netlify 环境变量添加 NETLIFY_AUTH_TOKEN。

@@ -1,4 +1,4 @@
-import { getStore } from "@netlify/blobs";
+import { getBlobStore } from "./blob-store.mjs";
 function json(statusCode, body) { return { statusCode, headers: {"Content-Type":"application/json; charset=utf-8"}, body: JSON.stringify(body) }; }
 export async function handler(event) {
   try {
@@ -6,7 +6,7 @@ export async function handler(event) {
     const providedPassword = event.headers["x-admin-password"] || event.headers["X-Admin-Password"];
     if (!expectedPassword) return json(500, { ok: false, error: "ADMIN_PASSWORD 未配置" });
     if (providedPassword !== expectedPassword) return json(401, { ok: false, error: "后台密码错误" });
-    const store = getStore("star-reading-records");
+    const store = getBlobStore("star-reading-records");
     const key = "health/admin-write-test.json";
     const data = { ok: true, time: new Date().toISOString() };
     await store.setJSON(key, data);

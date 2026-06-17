@@ -1,4 +1,4 @@
-import { getStore } from "@netlify/blobs";
+import { getBlobStore } from "./blob-store.mjs";
 
 function clean(value) {
   return String(value || "").trim();
@@ -36,7 +36,7 @@ export async function handler(event) {
     if (!pdfBase64 || pdfBase64.length < 100) return json(400, { error: "PDF 内容为空或读取失败。" });
 
     const pdfBuffer = Buffer.from(pdfBase64, "base64");
-    const store = getStore("platform-tickets");
+    const store = getBlobStore("platform-tickets");
 
     const pdfKey = `tickets/${studentId}.pdf`;
     const recordKey = `records/${studentId}.json`;
@@ -61,7 +61,8 @@ export async function handler(event) {
   } catch (err) {
     return json(500, {
       error: "门票保存失败。",
-      detail: String(err && err.message ? err.message : err)
+      detail: String(err && err.message ? err.message : err),
+      hint: "如果提示 Netlify Blobs 未配置，请在 Netlify 环境变量中添加 NETLIFY_AUTH_TOKEN，并确认站点有 SITE_ID。"
     });
   }
 }

@@ -1,4 +1,4 @@
-import { getStore } from "@netlify/blobs";
+import { getBlobStore } from "./blob-store.mjs";
 
 function clean(value) {
   return String(value || "").trim();
@@ -15,7 +15,7 @@ export async function handler(event) {
       };
     }
 
-    const store = getStore("platform-tickets");
+    const store = getBlobStore("platform-tickets");
     const arrayBuffer = await store.get(`tickets/${studentId}.pdf`, { type: "arrayBuffer" });
 
     if (!arrayBuffer) {
