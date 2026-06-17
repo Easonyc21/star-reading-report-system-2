@@ -731,6 +731,59 @@
       white-space: nowrap;
     }
 
+    .ticket-viewer {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      overflow: hidden;
+      background: #fff;
+      min-height: 680px;
+    }
+
+    .ticket-viewer iframe {
+      width: 100%;
+      height: 760px;
+      border: 0;
+      display: block;
+      background: #fff;
+    }
+
+    .ticket-notice {
+      margin-top: 16px;
+      padding: 18px 20px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--gold-bg), #FFFFFF);
+      border: 1px solid var(--gold-line);
+      color: #5F4B12;
+      line-height: 1.8;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .ticket-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .ticket-actions .pdf-btn {
+      width: auto;
+      min-width: 180px;
+    }
+
+    .ticket-empty {
+      margin-top: 16px;
+      padding: 18px 20px;
+      border-radius: 20px;
+      background: var(--orange-bg);
+      border: 1px solid var(--orange-line);
+      color: var(--orange-text);
+      line-height: 1.8;
+      font-size: 15px;
+      display: none;
+    }
+
     .footer-note {
       margin-top: 18px;
       color: var(--muted);
@@ -823,6 +876,9 @@
       .metric-value { font-size: 24px; }
       .metric-value.text-value { font-size: 18px; }
       .domain-grid { grid-template-columns: 1fr; }
+      .ticket-viewer { min-height: 560px; border-radius: 18px; }
+      .ticket-viewer iframe { height: 620px; }
+      .ticket-actions .pdf-btn { width: 100%; }
     }
   </style>
 </head>
@@ -1013,11 +1069,25 @@
       </section>
     </section>
 
-    <section id="ticketModule" class="module">
+        <section id="ticketModule" class="module">
       <div class="result" style="display:block;">
         <div class="section white">
-          <h3>线下家长会门票获取</h3>
-          <p>该服务入口即将开放。开放后，家长可在这里查看并获取本次线下家长会入场凭证。</p>
+          <h3>成长启航大会门票</h3>
+          <p id="ticketIntro">正在读取门票信息，请稍候...</p>
+
+          <div class="ticket-notice">
+            请家长查看门票后截图保存，到场后按门票上的座位号就座。
+          </div>
+
+          <div id="ticketEmpty" class="ticket-empty"></div>
+
+          <div id="ticketViewer" class="ticket-viewer" style="display:none;">
+            <iframe id="ticketFrame" title="成长启航大会门票"></iframe>
+          </div>
+
+          <div id="ticketActions" class="ticket-actions" style="display:none;">
+            <a id="ticketPdfLink" class="pdf-btn" href="#" target="_blank" rel="noopener">打开 / 保存门票 PDF</a>
+          </div>
         </div>
       </div>
     </section>
@@ -1039,8 +1109,8 @@
       },
       {
         id: "parent-meeting-ticket",
-        title: "线下家长会门票获取",
-        description: "查看并获取本次线下家长会入场凭证。该服务即将开放。",
+        title: "成长启航大会门票查询",
+        description: "查看成长启航大会门票 PDF，并提前截图保存。",
         status: "offline",
         actionText: "即将开放",
         sortOrder: 2
@@ -1363,10 +1433,11 @@
 
       if (id === "parent-meeting-ticket") {
         document.getElementById("moduleStarLogo").classList.remove("show");
-        document.getElementById("moduleBarTitle").innerText = "线下家长会门票获取";
-        document.getElementById("moduleBarSub").innerText = "查看并获取线下家长会入场凭证";
+        document.getElementById("moduleBarTitle").innerText = "成长启航大会门票查询";
+        document.getElementById("moduleBarSub").innerText = "查看成长启航大会门票 PDF";
         document.getElementById("starModule").style.display = "none";
         document.getElementById("ticketModule").style.display = "block";
+        renderTicket();
       }
 
       document.getElementById("moduleBar").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1379,6 +1450,49 @@
       document.getElementById("ticketModule").style.display = "none";
       document.getElementById("platformCard").style.display = "block";
       document.getElementById("platformCard").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function renderTicket() {
+      if (!currentUser || !currentUser.studentId) return;
+
+      const intro = document.getElementById("ticketIntro");
+      const empty = document.getElementById("ticketEmpty");
+      const viewer = document.getElementById("ticketViewer");
+      const frame = document.getElementById("ticketFrame");
+      const actions = document.getElementById("ticketActions");
+      const link = document.getElementById("ticketPdfLink");
+
+      intro.innerText = `正在读取 ${currentUser.chineseName || ""} 的成长启航大会门票...`;
+      empty.style.display = "none";
+      viewer.style.display = "none";
+      actions.style.display = "none";
+      frame.removeAttribute("src");
+      link.href = "#";
+
+      try {
+        const url = `/.netlify/functions/search-ticket?studentId=${encodeURIComponent(currentUser.studentId)}&t=${Date.now()}`;
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "查询失败");
+
+        if (!data.ticket) {
+          intro.innerText = "暂未查询到该学员的门票。";
+          empty.style.display = "block";
+          empty.innerText = "暂未查询到该学员的成长启航大会门票。如已确认报名，请联系班主任老师。";
+          return;
+        }
+
+        intro.innerText = `${currentUser.chineseName || "学员"} 的成长启航大会门票如下。`;
+        link.href = data.ticket.ticketUrl;
+        frame.src = data.ticket.ticketUrl;
+        viewer.style.display = "block";
+        actions.style.display = "flex";
+      } catch (err) {
+        intro.innerText = "门票查询服务暂时不可用。";
+        empty.style.display = "block";
+        empty.innerText = "门票查询服务暂时不可用，请稍后再试。";
+      }
     }
 
     function renderReportList() {

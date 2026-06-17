@@ -9,8 +9,8 @@ export const defaultSystems = [
   },
   {
     "id": "parent-meeting-ticket",
-    "title": "线下家长会门票获取",
-    "description": "查看并获取本次线下家长会入场凭证。该服务即将开放。",
+    "title": "成长启航大会门票查询",
+    "description": "查看成长启航大会门票 PDF，并提前截图保存。",
     "status": "offline",
     "actionText": "即将开放",
     "sortOrder": 2
