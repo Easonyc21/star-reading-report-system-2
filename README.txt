@@ -137,3 +137,6 @@ V23 统一学员名单 + 门票按钮：
 3. 没有 Star Reading 报告的学员，只要在名单里，也可以登录平台查询门票。
 4. 门票页面不再内嵌展示 PDF，只显示“查看 / 保存门票 PDF”按钮。
 5. 新增 student_roster_template.csv。
+
+
+V24 学员名单导入修复：补齐 admin-bulk-students/admin-save-student，后台遇到 HTML/404 会显示可读提示，新增 roster-health。
